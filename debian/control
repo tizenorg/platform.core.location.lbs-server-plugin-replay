@@ -14,6 +14,6 @@ Description: GPS manager plugin library for replay mode
 
 Package: libslp-lbs-plugin-replay-dbg
 Section: debug
-Architecture: armel
+Architecture: any
 Depends:  libslp-lbs-plugin-replay (= ${Source-Version})
 Description: GPS manager plugin library for replay mode (for debugging)

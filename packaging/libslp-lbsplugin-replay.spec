@@ -1,40 +1,45 @@
 Name:       libslp-lbsplugin-replay
-Summary:    gps-manager plugin library for replaying NMEA
+Summary:    gps-manager plugin library for replay mode 
 Version:    0.1.3
-Release:    0
-Group:      TO_BE/FILLED_IN
-License:    TO BE FILLED IN
+Release:    1
+Group:      libs
+License:    LGPL-2.1
 Source0:    %{name}-%{version}.tar.gz
-BuildRequires: cmake
-BuildRequires: pkgconfig(gps-manager-plugin)
-BuildRequires: pkgconfig(glib-2.0)
-BuildRequires: pkgconfig(dlog)
-BuildRequires: pkgconfig(vconf)
+BuildRequires:  cmake
+BuildRequires:  pkgconfig(glib-2.0)
+BuildRequires:  pkgconfig(vconf)
+BuildRequires:  pkgconfig(dlog)
+BuildRequires:  pkgconfig(gps-manager-plugin)
 
 %description
+gps-manager plugin library for replay mode
+
+%define DATADIR /opt/data/gps-manager
 
 %prep
-%setup -q
+%setup -q 
 
 %build
 ./autogen.sh
-%configure --disable-static --datadir=/opt/data/gps-manager
+CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" ./configure --prefix=%{_prefix}  --datadir=%{DATADIR}
+
+
 
 make %{?jobs:-j%jobs}
-
 
 %install
 rm -rf %{buildroot}
 %make_install
 
-mkdir -p %{buildroot}/opt/data/gps-manager/replay
-cp -a nmea-log/nmea_replay.log  %{buildroot}/opt/data/gps-manager/replay
+mkdir -p %{buildroot}%{DATADIR}/replay
+cp -a nmea-log/*.log %{buildroot}%{DATADIR}/replay
 
+%post
+rm -rf /usr/lib/libSLP-lbs-plugin.so
+ln -sf /usr/lib/libSLP-lbs-plugin-replay.so /usr/lib/libSLP-lbs-plugin.so
 
 %files
-%{_libdir}/libSLP-lbs-plugin-replay.so.0.0.0
-%{_libdir}/libSLP-lbs-plugin-replay.so.0
+
 %{_libdir}/libSLP-lbs-plugin-replay.so
-/opt/data/gps-manager/replay/nmea_replay.log
-
-
+%{_libdir}/libSLP-lbs-plugin-replay.so.*
+%{DATADIR}/replay/*

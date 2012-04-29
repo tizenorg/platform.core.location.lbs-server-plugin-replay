@@ -199,9 +199,16 @@ gboolean gps_plugin_replay_read_nmea(replay_timeout * timer, char *nmea_data)
 	int ref = 0;
 	char buf[REPLAY_NMEA_SENTENCE_SIZE] = { 0, };
 
+	if (timer->fd == NULL) {
+		LOG_PLUGIN(DBG_ERR, "nmea fd is NULL");
+		return FALSE;
+	}
+
 	if (nmea_data == NULL) {
 		LOG_PLUGIN(DBG_ERR, "nmea_data is NULL");
-		ret = FALSE;
+		fclose(timer->fd);
+		timer->fd = NULL;
+		return FALSE;
 	}
 
 	while (fgets(buf, REPLAY_NMEA_SENTENCE_SIZE, timer->fd) != NULL) {
@@ -232,6 +239,7 @@ gboolean gps_plugin_replay_read_nmea(replay_timeout * timer, char *nmea_data)
 	if (feof(timer->fd)) {
 		LOG_PLUGIN(DBG_ERR, "end of file");
 		rewind(timer->fd);
+		ret = TRUE;
 	} else {
 		LOG_PLUGIN(DBG_LOW, "read nmea data [%s]", nmea_data);
 	}
@@ -314,6 +322,7 @@ void gps_plugin_stop_replay_mode(replay_timeout * timer)
 	if (timer->replay_mode == REPLAY_NMEA && fclose(timer->fd) != 0) {
 		LOG_PLUGIN(DBG_ERR, "fclose failed");
 	}
+	timer->fd = NULL;
 
 	if (timer->timeout_src != NULL && timer->default_context != NULL && !g_source_is_destroyed(timer->timeout_src)) {
 		if (timer->default_context == g_source_get_context(timer->timeout_src)) {
@@ -331,18 +340,27 @@ void gps_plugin_stop_replay_mode(replay_timeout * timer)
 	gps_plugin_respond_stop_session();
 }
 
+gboolean gps_plugin_get_nmea_fd(replay_timeout * timer)
+{
+	char replay_file_path[256];
+
+	snprintf(replay_file_path, sizeof(replay_file_path), NMEA_FILE_PATH"%s", setting_get_string(NMEA_FILE_NAME));
+	LOG_PLUGIN(DBG_ERR, "replay file name : %s", replay_file_path);
+
+	timer->fd = fopen(replay_file_path, "r");
+	if (timer->fd == NULL) {
+		LOG_PLUGIN(DBG_ERR, "fopen(%s) failed", replay_file_path);
+		return FALSE;
+	}
+	return TRUE;
+}
+
 gboolean gps_plugin_start_replay_mode(replay_timeout * timer)
 {
 	gboolean ret = FALSE;
-	char replay_file_path[256];
 
 	if (timer->replay_mode == REPLAY_NMEA) {
-		snprintf(replay_file_path, sizeof(replay_file_path), NMEA_FILE_PATH "%s", setting_get_string(NMEA_FILE_NAME));
-		LOG_PLUGIN(DBG_ERR, "replay file name : %s", replay_file_path);
-
-		timer->fd = fopen(replay_file_path, "r");
-		if (timer->fd == NULL) {
-			LOG_PLUGIN(DBG_ERR, "fopen(%s) failed", replay_file_path);
+		if (gps_plugin_get_nmea_fd(timer) == FALSE) {
 			return FALSE;
 		}
 	}
@@ -381,6 +399,17 @@ static void replay_mode_changed_cb(keynode_t * key, void *data)
 	if (setting_get_int(REPLAY_MODE, &g_replay_timer->replay_mode) == FALSE) {
 		g_replay_timer->replay_mode = REPLAY_OFF;
 	}
+
+	if (g_replay_timer->replay_mode == REPLAY_NMEA) {
+		if (gps_plugin_get_nmea_fd(g_replay_timer) == FALSE) {
+			LOG_PLUGIN(DBG_ERR, "Fail to get nmea fd.");
+		}
+	} else {
+		if (g_replay_timer->fd != NULL) {
+			fclose(g_replay_timer->fd);
+			g_replay_timer->fd = NULL;
+		}
+	}
 	return;
 }
 
@@ -394,6 +423,7 @@ replay_timeout *gps_plugin_replay_timer_init()
 		return NULL;
 	}
 
+	timer->fd = NULL;
 	timer->interval = 1;
 	if (setting_get_int(REPLAY_MODE, &timer->replay_mode) == FALSE) {
 		timer->replay_mode = REPLAY_OFF;

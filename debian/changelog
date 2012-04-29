@@ -1,3 +1,27 @@
+libslp-lbsplugin-replay (0.1.3-5) unstable; urgency=low
+
+  * Bug fix : eof of nmea log
+  * Git: pkgs/l/libslp-lbsplugin-replay
+  * Tag: libslp-lbsplugin-replay_0.1.3-5
+
+ -- Genie Kim <daejins.kim@samsung.com>  Mon, 16 Apr 2012 16:29:00 +0900
+
+libslp-lbsplugin-replay (0.1.3-4) unstable; urgency=low
+
+  * Bug fix: replay mode key
+  * Git: pkgs/l/libslp-lbsplugin-replay
+  * Tag: libslp-lbsplugin-replay_0.1.3-4
+
+ -- Genie Kim <daejins.kim@samsung.com>  Fri, 13 Apr 2012 16:41:43 +0900
+
+libslp-lbsplugin-replay (0.1.3-3) unstable; urgency=low
+
+  * Bug fix: NMEA log file path
+  * Git: pkgs/l/libslp-lbsplugin-replay
+  * Tag: libslp-lbsplugin-replay_0.1.3-3
+
+ -- Youngae Kang <youngae.kang@samsung.com>  Sat, 07 Apr 2012 14:49:22 +0900
+
 libslp-lbsplugin-replay (0.1.3-2) unstable; urgency=low
 
   * change spec file
