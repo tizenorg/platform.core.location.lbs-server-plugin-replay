@@ -5,6 +5,7 @@ Release:    1
 Group:      libs
 License:    LGPL-2.1
 Source0:    %{name}-%{version}.tar.gz
+Source1001: packaging/libslp-lbsplugin-replay.manifest 
 BuildRequires:  cmake
 BuildRequires:  pkgconfig(glib-2.0)
 BuildRequires:  pkgconfig(vconf)
@@ -20,6 +21,7 @@ gps-manager plugin library for replay mode
 %setup -q 
 
 %build
+cp %{SOURCE1001} .
 ./autogen.sh
 CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" ./configure --prefix=%{_prefix}  --datadir=%{DATADIR}
 
@@ -39,6 +41,7 @@ rm -rf /usr/lib/libSLP-lbs-plugin.so
 ln -sf /usr/lib/libSLP-lbs-plugin-replay.so /usr/lib/libSLP-lbs-plugin.so
 
 %files
+%manifest libslp-lbsplugin-replay.manifest
 
 %{_libdir}/libSLP-lbs-plugin-replay.so
 %{_libdir}/libSLP-lbs-plugin-replay.so.*
