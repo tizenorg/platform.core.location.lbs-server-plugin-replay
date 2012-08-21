@@ -1,9 +1,9 @@
-Name:       libslp-lbsplugin-replay
-Summary:    gps-manager plugin library for replay mode 
+Name:       libslp-lbs-plugin-replay
+Summary:    gps-manager plugin library for replay mode
 Version:    0.1.3
 Release:    1
-Group:      libs
-License:    LGPL-2.1
+Group:      TO_BE/FILLED_IN
+License:    TO_BE/FILLED_IN
 Source0:    %{name}-%{version}.tar.gz
 BuildRequires:  cmake
 BuildRequires:  pkgconfig(glib-2.0)
@@ -14,17 +14,16 @@ BuildRequires:  pkgconfig(gps-manager-plugin)
 %description
 gps-manager plugin library for replay mode
 
-%define DATADIR /opt/data/gps-manager
+%define DATADIR /etc/gps-manager
 
 %prep
 %setup -q 
 
-%build
 ./autogen.sh
-CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" ./configure --prefix=%{_prefix}  --datadir=%{DATADIR}
+./configure --prefix=%{_prefix}  --datadir=%{DATADIR}
 
 
-
+%build
 make %{?jobs:-j%jobs}
 
 %install
@@ -39,7 +38,7 @@ rm -rf /usr/lib/libSLP-lbs-plugin.so
 ln -sf /usr/lib/libSLP-lbs-plugin-replay.so /usr/lib/libSLP-lbs-plugin.so
 
 %files
-
+%defattr(-,root,root,-)
 %{_libdir}/libSLP-lbs-plugin-replay.so
 %{_libdir}/libSLP-lbs-plugin-replay.so.*
 %{DATADIR}/replay/*

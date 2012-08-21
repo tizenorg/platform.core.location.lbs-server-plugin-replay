@@ -17,7 +17,7 @@ CFLAGS ?= -Wall -g
 LDFLAGS ?=
 PREFIX ?= /usr
 DESTDIR ?= $(CURDIR)/debian/tmp
-DATADIR ?= $(DESTDIR)/opt/data/gps-manager
+DATADIR ?= $(DESTDIR)/etc/gps-manager
 
 #CFLAGS += -O0
 #CXXFLAGS += -O0

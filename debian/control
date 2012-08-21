@@ -1,9 +1,9 @@
-Source: libslp-lbsplugin-replay
+Source: libslp-lbs-plugin-replay
 Section: devel
 Priority: extra
 Maintainer: Youngae Kang <youngae.kang@samsung.com>, Yunhan Kim <yhan.kim@samsung.com>, Genie Kim <daejins.kim@samsung.com>
 Uploaders: Genie Kim <daejins.kim@samsung.com>
-Build-Depends: debhelper (>= 4.0.0), autotools-dev, gps-manager-plugin-dev, libglib2.0-dev, libvconf-dev, dlog-dev
+Build-Depends: debhelper (>= 4.0.0), autotools-dev, gps-manager-plugin-dev, libglib2.0-dev, libvconf-dev, vconf-internal-keys-dev, dlog-dev
 Standards-Version: 0.1.0
 
 Package: libslp-lbs-plugin-replay

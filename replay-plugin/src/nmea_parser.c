@@ -227,6 +227,26 @@ static int nmea_parser_gprmc(char *token[], pos_data_t * pos)
 	return READ_SUCCESS;
 }
 
+static int nmea_parser_gpgll(char *token[], pos_data_t * pos)
+{
+	char *status;
+	double latitude, longitude;
+
+	status = token[6];	//warn = *token[2];
+	if (strcmp(status, "V") == 0) {
+		LOG_PLUGIN(DBG_LOW, "Not fixed");
+		return READ_NOT_FIXED;
+	}
+
+        latitude = nmea_parser_get_latitude(token[1], token[2]);
+        longitude = nmea_parser_get_longitude(token[3], token[4]);
+
+        pos->latitude = latitude;
+        pos->longitude = longitude;
+
+        return READ_SUCCESS;
+}
+
 static int nmea_parser_gpgsa(char *token[], pos_data_t * pos)
 {
 	char selection_type;
@@ -310,6 +330,8 @@ int nmea_parser_sentence(char *sentence, char *token[], pos_data_t * pos, sv_dat
 		ret = nmea_parser_gpgga(token, pos, sv);
 	} else if (strcmp(sentence, "GPRMC") == 0) {
 		ret = nmea_parser_gprmc(token, pos);
+	} else if (strcmp(sentence, "GPGLL") == 0) {
+		ret = nmea_parser_gpgll(token, pos);
 	} else if (strcmp(sentence, "GPGSA") == 0) {
 		ret = nmea_parser_gpgsa(token, pos);
 	} else if (strcmp(sentence, "GPVTG") == 0) {

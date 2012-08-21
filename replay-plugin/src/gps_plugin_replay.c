@@ -250,15 +250,15 @@ gboolean gps_plugin_replay_read_manual(pos_data_t * pos_data)
 {
 	gboolean ret = TRUE;
 
-	if (setting_get_double(MANUAL_LATITUDE, &pos_data->latitude) == FALSE) {
+	if (setting_get_double(VCONFKEY_LOCATION_MANUAL_LATITUDE, &pos_data->latitude) == FALSE) {
 		LOG_PLUGIN(DBG_ERR, "Fail to get latitude");
 		ret = FALSE;
 	}
-	if (setting_get_double(MANUAL_LONGITUDE, &pos_data->longitude) == FALSE) {
+	if (setting_get_double(VCONFKEY_LOCATION_MANUAL_LONGITUDE, &pos_data->longitude) == FALSE) {
 		LOG_PLUGIN(DBG_ERR, "Fail to get longitude");
 		ret = FALSE;
 	}
-	if (setting_get_double(MANUAL_ALTITUDE, &pos_data->altitude) == FALSE) {
+	if (setting_get_double(VCONFKEY_LOCATION_MANUAL_ALTITUDE, &pos_data->altitude) == FALSE) {
 		LOG_PLUGIN(DBG_ERR, "Fail to get altitude");
 		ret = FALSE;
 	}
@@ -344,13 +344,17 @@ gboolean gps_plugin_get_nmea_fd(replay_timeout * timer)
 {
 	char replay_file_path[256];
 
-	snprintf(replay_file_path, sizeof(replay_file_path), NMEA_FILE_PATH"%s", setting_get_string(NMEA_FILE_NAME));
+	snprintf(replay_file_path, sizeof(replay_file_path), NMEA_FILE_PATH"%s", setting_get_string(VCONFKEY_LOCATION_NMEA_FILE_NAME));
 	LOG_PLUGIN(DBG_ERR, "replay file name : %s", replay_file_path);
 
 	timer->fd = fopen(replay_file_path, "r");
 	if (timer->fd == NULL) {
 		LOG_PLUGIN(DBG_ERR, "fopen(%s) failed", replay_file_path);
-		return FALSE;
+		timer->fd = fopen(DEFAULT_NMEA_LOG, "r");
+		if (timer->fd == NULL) {
+			LOG_PLUGIN(DBG_ERR, "fopen(%s) failed", DEFAULT_NMEA_LOG);
+			return FALSE;
+		}
 	}
 	return TRUE;
 }
@@ -396,7 +400,7 @@ gboolean gps_plugin_start_replay_mode(replay_timeout * timer)
 
 static void replay_mode_changed_cb(keynode_t * key, void *data)
 {
-	if (setting_get_int(REPLAY_MODE, &g_replay_timer->replay_mode) == FALSE) {
+	if (setting_get_int(VCONFKEY_LOCATION_REPLAY_MODE, &g_replay_timer->replay_mode) == FALSE) {
 		g_replay_timer->replay_mode = REPLAY_OFF;
 	}
 
@@ -425,10 +429,10 @@ replay_timeout *gps_plugin_replay_timer_init()
 
 	timer->fd = NULL;
 	timer->interval = 1;
-	if (setting_get_int(REPLAY_MODE, &timer->replay_mode) == FALSE) {
+	if (setting_get_int(VCONFKEY_LOCATION_REPLAY_MODE, &timer->replay_mode) == FALSE) {
 		timer->replay_mode = REPLAY_OFF;
 	}
-	setting_notify_key_changed(REPLAY_MODE, replay_mode_changed_cb);
+	setting_notify_key_changed(VCONFKEY_LOCATION_REPLAY_MODE, replay_mode_changed_cb);
 
 	timer->pos_data = (pos_data_t *) malloc(sizeof(pos_data_t));
 	timer->sv_data = (sv_data_t *) malloc(sizeof(sv_data_t));
@@ -464,7 +468,7 @@ void gps_plugin_replay_timer_deinit(replay_timeout * timer)
 		timer->nmea_data = NULL;
 	}
 
-	setting_ignore_key_changed(REPLAY_MODE, replay_mode_changed_cb);
+	setting_ignore_key_changed(VCONFKEY_LOCATION_REPLAY_MODE, replay_mode_changed_cb);
 
 	free(timer);
 	timer = NULL;

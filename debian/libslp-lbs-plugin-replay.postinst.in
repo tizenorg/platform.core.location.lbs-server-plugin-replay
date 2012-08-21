@@ -6,8 +6,8 @@ ln -sf /usr/lib/libSLP-lbs-plugin-replay.so /usr/lib/libSLP-lbs-plugin.so
 if [ "${USER}" = "root" ]
 then
 #Change File owner
-        chown root:root /opt/data/gps-manager/replay/nmea_replay.log
+        chown root:root /etc/gps-manager/replay/nmea_replay.log
 
 #Change File Permission
-        chmod 666 /opt/data/gps-manager/replay/nmea_replay.log
+        chmod 666 /etc/gps-manager/replay/nmea_replay.log
 fi

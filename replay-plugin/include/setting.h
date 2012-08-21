@@ -23,19 +23,10 @@
 #define _SETTING_H_
 
 #include <vconf.h>
-#include <vconf-keys.h>
+#include <vconf-internal-location-keys.h>
 
-#define NMEA_FILE_PATH 		"/opt/data/gps-manager/replay/"
-
-#define LOCATION_SETTING_PATH	"db/location"
-
-#define REPLAY_SETTING 		LOCATION_SETTING_PATH"/replay"
-#define REPLAY_ENABLED 		REPLAY_SETTING"/ReplayEnabled"
-#define REPLAY_MODE 		REPLAY_SETTING"/ReplayMode"
-#define NMEA_FILE_NAME 		REPLAY_SETTING"/FileName"
-#define MANUAL_LATITUDE 	REPLAY_SETTING"/ManualLatitude"
-#define MANUAL_LONGITUDE 	REPLAY_SETTING"/ManualLongitude"
-#define MANUAL_ALTITUDE 	REPLAY_SETTING"/ManualAltitude"
+#define NMEA_FILE_PATH "/opt/media/gps-manager/replay/"
+#define DEFAULT_NMEA_LOG "/etc/gps-manager/replay/nmea_replay.log"
 
 typedef enum {
 	REPLAY_OFF = 0,
