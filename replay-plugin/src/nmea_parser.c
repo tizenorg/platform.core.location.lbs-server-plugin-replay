@@ -1,10 +1,10 @@
 /*
- * gps-manager replay plugin
+ * GPS manager replay plugin
  *
- * Copyright (c) 2011-2013 Samsung Electronics Co., Ltd. All rights reserved.
+ * Copyright (c) 2011 Samsung Electronics Co., Ltd. All rights reserved.
  *
- * Contact: Youngae Kang <youngae.kang@samsung.com>, Minjune Kim <sena06.kim@samsung.com>
- *          Genie Kim <daejins.kim@samsung.com>
+ * Contact: Youngae Kang <youngae.kang@samsung.com>, Yunhan Kim <yhan.kim@samsung.com>,
+ *          Genie Kim <daejins.kim@samsung.com>, Minjune Kim <sena06.kim@samsung.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -103,6 +103,9 @@ int nmea_parser_tokenize(char input[], char *token[])
 			} else {
 				state = 0;
 			}
+			break;
+		default:
+			state = 0;
 			break;
 		}
 		s++;
@@ -322,7 +325,7 @@ static int nmea_parser_gpgsv(char *token[], sv_data_t * sv)
 
 int nmea_parser_sentence(char *sentence, char *token[], pos_data_t * pos, sv_data_t * sv)
 {
-	int ret = READ_ERROR;
+	int ret;
 	if (strcmp(sentence, "GPGGA") == 0) {
 		ret = nmea_parser_gpgga(token, pos, sv);
 	} else if (strcmp(sentence, "GPRMC") == 0) {
@@ -366,7 +369,7 @@ int nmea_parser(char *data, pos_data_t * pos, sv_data_t * sv)
 			if (err == READ_NOT_FIXED) {
 				LOG_PLUGIN(DBG_LOW, "NOT Fixed");
 				ret = err;
-			} else if (err == READ_ERROR) {
+			} else if (ret == READ_ERROR) {
 				ret = err;
 				break;
 			}

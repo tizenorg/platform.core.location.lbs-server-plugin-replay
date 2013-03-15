@@ -1,10 +1,10 @@
 /*
- * gps-manager replay plugin
+ * GPS manager replay plugin
  *
- * Copyright (c) 2011-2013 Samsung Electronics Co., Ltd. All rights reserved.
+ * Copyright (c) 2011 Samsung Electronics Co., Ltd. All rights reserved.
  *
- * Contact: Youngae Kang <youngae.kang@samsung.com>, Minjune Kim <sena06.kim@samsung.com>
- *          Genie Kim <daejins.kim@samsung.com>
+ * Contact: Youngae Kang <youngae.kang@samsung.com>, Yunhan Kim <yhan.kim@samsung.com>,
+ *          Genie Kim <daejins.kim@samsung.com>, Minjune Kim <sena06.kim@samsung.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -270,13 +270,8 @@ gboolean gps_plugin_replay_timeout_cb(gpointer data)
 {
 	gboolean ret = FALSE;
 	read_error_t err = READ_SUCCESS;
-	char nmea_data[REPLAY_NMEA_SET_SIZE] = { 0, };
 	replay_timeout *timer = (replay_timeout *) data;
-
-	if (timer == NULL) {
-		LOG_PLUGIN(DBG_ERR, "replay handel[timer] is NULL");
-		return FALSE;
-	}
+	char nmea_data[REPLAY_NMEA_SET_SIZE] = { 0, };
 
 	memset(timer->pos_data, 0, sizeof(pos_data_t));
 	memset(timer->sv_data, 0, sizeof(sv_data_t));
@@ -310,13 +305,15 @@ gboolean gps_plugin_replay_timeout_cb(gpointer data)
 		timer->sv_data->pos_valid = FALSE;
 	}
 
-	if (g_gps_event_cb != NULL) {
-		if (err != READ_NOT_FIXED) {
-			gps_plugin_replay_pos_event(timer->pos_data);
+	if (timer != NULL) {
+		if (g_gps_event_cb != NULL) {
+			if (err != READ_NOT_FIXED) {
+				gps_plugin_replay_pos_event(timer->pos_data);
+			}
+			gps_plugin_replay_sv_event(timer->sv_data);
 		}
-		gps_plugin_replay_sv_event(timer->sv_data);
+		ret = TRUE;
 	}
-	ret = TRUE;
 	return ret;
 }
 
@@ -438,26 +435,11 @@ replay_timeout *gps_plugin_replay_timer_init()
 	setting_notify_key_changed(VCONFKEY_LOCATION_REPLAY_MODE, replay_mode_changed_cb);
 
 	timer->pos_data = (pos_data_t *) malloc(sizeof(pos_data_t));
-	if (timer->pos_data == NULL) {
-		LOG_PLUGIN(DBG_ERR, "pos_data allocation is failed.");
-		free(timer);
-		return NULL;
-	}
-
 	timer->sv_data = (sv_data_t *) malloc(sizeof(sv_data_t));
-	if (timer->sv_data == NULL) {
-		LOG_PLUGIN(DBG_ERR, "sv_data allocation is failed.");
-		free(timer->pos_data);
-		free(timer);
-		return NULL;
-	}
-
 	timer->nmea_data = (nmea_data_t *) malloc(sizeof(nmea_data_t));
-	if (timer->nmea_data == NULL) {
-		LOG_PLUGIN(DBG_ERR, "nmea_data allocation is failed.");
-		free(timer->pos_data);
-		free(timer->sv_data);
-		free(timer);
+
+	if (timer->pos_data == NULL || timer->sv_data == NULL || timer->nmea_data == NULL) {
+		LOG_PLUGIN(DBG_ERR, "pos_data or sv_data or nmea_data allocation is failed.");
 		return NULL;
 	}
 

@@ -1,0 +1,3 @@
+debian/tmp@PREFIX@/lib/libSLP-lbs-plugin-replay.so
+debian/tmp@PREFIX@/lib/libSLP-lbs-plugin-replay.so.*
+debian/tmp/etc/gps-manager/replay/*
