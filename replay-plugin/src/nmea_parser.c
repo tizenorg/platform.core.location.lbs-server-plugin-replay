@@ -104,9 +104,6 @@ int nmea_parser_tokenize(char input[], char *token[])
 				state = 0;
 			}
 			break;
-		default:
-			state = 0;
-			break;
 		}
 		s++;
 	}
@@ -325,7 +322,7 @@ static int nmea_parser_gpgsv(char *token[], sv_data_t * sv)
 
 int nmea_parser_sentence(char *sentence, char *token[], pos_data_t * pos, sv_data_t * sv)
 {
-	int ret;
+	int ret = READ_ERROR;
 	if (strcmp(sentence, "GPGGA") == 0) {
 		ret = nmea_parser_gpgga(token, pos, sv);
 	} else if (strcmp(sentence, "GPRMC") == 0) {
@@ -369,7 +366,7 @@ int nmea_parser(char *data, pos_data_t * pos, sv_data_t * sv)
 			if (err == READ_NOT_FIXED) {
 				LOG_PLUGIN(DBG_LOW, "NOT Fixed");
 				ret = err;
-			} else if (ret == READ_ERROR) {
+			} else if (err == READ_ERROR) {
 				ret = err;
 				break;
 			}

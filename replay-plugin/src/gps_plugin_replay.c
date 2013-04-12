@@ -305,15 +305,13 @@ gboolean gps_plugin_replay_timeout_cb(gpointer data)
 		timer->sv_data->pos_valid = FALSE;
 	}
 
-	if (timer != NULL) {
-		if (g_gps_event_cb != NULL) {
-			if (err != READ_NOT_FIXED) {
-				gps_plugin_replay_pos_event(timer->pos_data);
-			}
-			gps_plugin_replay_sv_event(timer->sv_data);
+	if (g_gps_event_cb != NULL) {
+		if (err != READ_NOT_FIXED) {
+			gps_plugin_replay_pos_event(timer->pos_data);
 		}
-		ret = TRUE;
+		gps_plugin_replay_sv_event(timer->sv_data);
 	}
+	ret = TRUE;
 	return ret;
 }
 
@@ -435,13 +433,27 @@ replay_timeout *gps_plugin_replay_timer_init()
 	setting_notify_key_changed(VCONFKEY_LOCATION_REPLAY_MODE, replay_mode_changed_cb);
 
 	timer->pos_data = (pos_data_t *) malloc(sizeof(pos_data_t));
+    if (timer->pos_data == NULL) {
+        LOG_PLUGIN(DBG_ERR, "pos_data allocation is failed.");
+        free(timer);
+        return NULL;
+    }
 	timer->sv_data = (sv_data_t *) malloc(sizeof(sv_data_t));
-	timer->nmea_data = (nmea_data_t *) malloc(sizeof(nmea_data_t));
+    if (timer->sv_data == NULL) {
+        LOG_PLUGIN(DBG_ERR, "sv_data allocation is failed.");
+        free(timer->pos_data);
+        free(timer);
+        return NULL;
+    }
 
-	if (timer->pos_data == NULL || timer->sv_data == NULL || timer->nmea_data == NULL) {
-		LOG_PLUGIN(DBG_ERR, "pos_data or sv_data or nmea_data allocation is failed.");
-		return NULL;
-	}
+	timer->nmea_data = (nmea_data_t *) malloc(sizeof(nmea_data_t));
+    if (timer->nmea_data == NULL) {
+        LOG_PLUGIN(DBG_ERR, "nmea_data allocation is failed.");
+        free(timer->pos_data);
+        free(timer->sv_data);
+        free(timer); 
+        return NULL;
+    } 
 
 	timer->timeout_src = NULL;
 	timer->default_context = NULL;
