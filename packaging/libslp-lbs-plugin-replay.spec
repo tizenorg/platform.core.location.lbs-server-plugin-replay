@@ -28,6 +28,9 @@ make %{?jobs:-j%jobs}
 
 %install
 rm -rf %{buildroot}
+mkdir -p %{buildroot}/usr/share/license
+cp %{_builddir}/%{name}-%{version}/LICENSE %{buildroot}/usr/share/license/%{name}
+
 %make_install
 
 mkdir -p %{buildroot}%{DATADIR}/replay
@@ -39,6 +42,7 @@ ln -sf /usr/lib/libSLP-lbs-plugin-replay.so /usr/lib/libSLP-lbs-plugin.so
 
 %files
 %manifest libslp-lbs-plugin-replay.manifest
+/usr/share/license/%{name}
 %defattr(-,root,root,-)
 %{_libdir}/libSLP-lbs-plugin-replay.so
 %{_libdir}/libSLP-lbs-plugin-replay.so.*

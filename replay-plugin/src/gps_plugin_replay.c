@@ -56,6 +56,12 @@ int gps_plugin_replay_gps_init(gps_event_cb gps_event_cb, gps_server_param_t * g
 int gps_plugin_replay_gps_deinit(gps_failure_reason_t * reason_code);
 int gps_plugin_replay_gps_request(gps_action_t gps_action, void *data, gps_failure_reason_t * reason_code);
 
+/* 
+This is the interface that will be given to the gps-manager to call the API's of this plug-in module.
+Init is called immediately after loading the plugin.
+Deinit is called during the shut-down.
+Request is called with specific parameter for the required operations.
+*/
 static const gps_plugin_interface g_gps_plugin_replay_interface = {
 	gps_plugin_replay_gps_init,
 	gps_plugin_replay_gps_deinit,
