@@ -1,0 +1,8 @@
+<manifest>
+	<request>
+		<domain name="_" />
+	</request>
+	<assign>
+		<filesystem path="/etc/gps-manager/replay/nmea_replay.log" label="location_fw::server" />
+	</assign>
+</manifest>
