@@ -4,7 +4,7 @@
  * Copyright (c) 2011-2013 Samsung Electronics Co., Ltd. All rights reserved.
  *
  * Contact: Youngae Kang <youngae.kang@samsung.com>, Minjune Kim <sena06.kim@samsung.com>
- *          Genie Kim <daejins.kim@samsung.com>
+ *			Genie Kim <daejins.kim@samsung.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,8 @@
 #include <vconf.h>
 #include <vconf-internal-location-keys.h>
 
-#define NMEA_FILE_PATH "/opt/media/gps-manager/replay/"
-#define DEFAULT_NMEA_LOG "/etc/gps-manager/replay/nmea_replay.log"
+#define NMEA_FILE_PATH "/opt/usr/media/lbs-server/replay/"
+#define DEFAULT_NMEA_LOG "/etc/lbs-server/replay/nmea_replay.log"
 
 typedef enum {
 	REPLAY_OFF = 0,
@@ -36,9 +36,15 @@ typedef enum {
 } replay_mode_t;
 
 typedef enum {
-	READ_ERROR       = -1,
-	READ_SUCCESS     = 0,
-	READ_NOT_FIXED   = 1,
+	BATCH_MODE_OFF = 0,
+	BATCH_MODE_ON,
+	BATCH_MODE_EXPIRED
+} batch_mode_t;
+
+typedef enum {
+	READ_ERROR		= -1,
+	READ_SUCCESS	= 0,
+	READ_NOT_FIXED	= 1,
 } read_error_t;
 
 int setting_get_int(const char *path, int *val);

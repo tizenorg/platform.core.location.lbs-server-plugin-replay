@@ -1,3 +1,4 @@
 ACLOCAL_AMFLAGS = -I m4
 
-SUBDIRS = . replay-plugin
+SUBDIRS = . gps-plugin
+#SUBDIRS = . gps-plugin xps-plugin
