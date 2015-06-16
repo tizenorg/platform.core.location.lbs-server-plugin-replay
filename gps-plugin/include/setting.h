@@ -37,8 +37,7 @@ typedef enum {
 
 typedef enum {
 	BATCH_MODE_OFF = 0,
-	BATCH_MODE_ON,
-	BATCH_MODE_EXPIRED
+	BATCH_MODE_ON
 } batch_mode_t;
 
 typedef enum {
@@ -51,7 +50,7 @@ int setting_get_int(const char *path, int *val);
 int setting_get_double(const char *path, double *val);
 char *setting_get_string(const char *path);
 
-typedef void (*key_changed_cb) (keynode_t * key, void *data);
+typedef void (*key_changed_cb)(keynode_t *key, void *data);
 
 int setting_notify_key_changed(const char *path, void *key_changed_cb);
 int setting_ignore_key_changed(const char *path, void *key_changed_cb);

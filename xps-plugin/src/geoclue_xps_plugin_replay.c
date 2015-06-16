@@ -35,16 +35,13 @@ int geoclue_plugin_test_load(void);
 int geoclue_plugin_test_unload(void);
 int geoclue_plugin_test_location(unsigned long period, LocationCallback cb, void *arg, void **handle);
 int geoclue_plugin_test_cancel(void *handle, CancelCallback cb, void *arg);
-void geoclue_plugin_test_get_offline_token(const unsigned char *key,
-			unsigned int keyLengh,
-			OfflineTokenCallback cb,
-			void *arg);
+void geoclue_plugin_test_get_offline_token(const unsigned char *key, unsigned int keyLengh, OfflineTokenCallback cb, void *arg);
 int geoclue_plugin_test_offline_location(const unsigned char *key,
-			unsigned int keyLength,
-			const unsigned char *token,
-			unsigned int tokenSize,
-			LocationCallback cb,
-			void *arg);
+		unsigned int keyLength,
+		const unsigned char *token,
+		unsigned int tokenSize,
+		LocationCallback cb,
+		void *arg);
 
 static const geoclue_plugin_interface g_geoclue_plugin_interface_test_interface = {
 	geoclue_plugin_test_load,
@@ -56,11 +53,11 @@ static const geoclue_plugin_interface g_geoclue_plugin_interface_test_interface 
 };
 
 typedef struct {
-	int index;						// used for handle
+	int index;						/* used for handle */
 	plugin_LocationInfo *location;
 	unsigned long period;
-	LocationCallback location_cb;	// save from location
-	void *arg;						// save from location
+	LocationCallback location_cb;	/* save from location */
+	void *arg;						/* save from location */
 } GeoclueXpsPluginTest;
 
 static GeoclueXpsPluginTest *xps_plugint_test = NULL;
@@ -76,7 +73,7 @@ static gboolean update_fake_position(gpointer data)
 			} else {
 				xps_plugin->location->latitude = 0;
 			}
-			if (xps_plugin->location->longitude< 180) {
+			if (xps_plugin->location->longitude < 180) {
 				xps_plugin->location->longitude++;
 			} else {
 				xps_plugin->location->longitude = 0;
@@ -108,7 +105,7 @@ static gboolean update_fake_position(gpointer data)
 			}
 		}
 
-		// called intervals
+		/* called intervals */
 		if (xps_plugin->location_cb) {
 			xps_plugin->location_cb(xps_plugin->arg, xps_plugin->location, NULL);
 		}
@@ -122,7 +119,7 @@ int geoclue_plugin_test_load(void)
 	LOG_PLUGIN(LOG_DEBUG, "geoclue_plugin_test_load called");
 
 
-	// create plugin_LocationInfo *location
+	/* create plugin_LocationInfo *location */
 	if (NULL == xps_plugint_test) {
 		xps_plugint_test = g_new0(GeoclueXpsPluginTest, 1);
 		if (NULL == xps_plugint_test) {
@@ -130,7 +127,7 @@ int geoclue_plugin_test_load(void)
 			return FALSE;
 		} else {
 			xps_plugint_test->index = 0;
-			xps_plugint_test->period = 5000;	// 5s
+			xps_plugint_test->period = 5000;	/* 5s */
 			xps_plugint_test->location = g_new0(plugin_LocationInfo, 1);
 			if (NULL == xps_plugint_test->location) {
 				LOG_PLUGIN(LOG_ERROR, "[ERROR] plugin_LocationInfo create fail");
@@ -140,16 +137,16 @@ int geoclue_plugin_test_load(void)
 			xps_plugint_test->location->latitude = 10;
 			xps_plugint_test->location->longitude = 10;
 			xps_plugint_test->location->hpe = 10;
-			xps_plugint_test->location->altitude= 10;
+			xps_plugint_test->location->altitude = 10;
 			xps_plugint_test->location->age = 10;
 			xps_plugint_test->location->speed = 10;
 			xps_plugint_test->location->bearing = 10;
 		}
 	}
 
-	// create the timer
-	//g_timeout_add (xps_plugint_test->period, update_fake_position, xps_plugint_test);
-	g_timeout_add (5000, update_fake_position, xps_plugint_test);
+	/* create the timer */
+	/*g_timeout_add (xps_plugint_test->period, update_fake_position, xps_plugint_test); */
+	g_timeout_add(5000, update_fake_position, xps_plugint_test);
 
 	return TRUE;
 }
@@ -157,7 +154,7 @@ int geoclue_plugin_test_unload(void)
 {
 	LOG_PLUGIN(LOG_DEBUG, "geoclue_plugin_test_unload called");
 
-	// free plugin_LocationInfo *location
+	/* free plugin_LocationInfo *location */
 	if (xps_plugint_test) {
 		if (xps_plugint_test->location) {
 			g_free(xps_plugint_test->location);
@@ -167,16 +164,16 @@ int geoclue_plugin_test_unload(void)
 		xps_plugint_test = NULL;
 	}
 
-	// kill the timer
+	/* kill the timer */
 	return TRUE;
 }
 int geoclue_plugin_test_location(unsigned long period, LocationCallback cb, void *arg, void **handle)
 {
 	LOG_PLUGIN(LOG_DEBUG, "geoclue_plugin_test_location called");
 
-	// update the plugin_LocationInfo *location in the timer
+	/* update the plugin_LocationInfo *location in the timer */
 
-	// update handle
+	/* update handle */
 	if (xps_plugint_test) {
 		LOG_PLUGIN(LOG_DEBUG, "geoclue_plugin_test_location: before set handle");
 		xps_plugint_test->index++;
@@ -184,7 +181,7 @@ int geoclue_plugin_test_location(unsigned long period, LocationCallback cb, void
 		*handle = (void *)tmp;
 		LOG_PLUGIN(LOG_DEBUG, "geoclue_plugin_test_location: after set handle, set[%s], handle[%s]", tmp, *handle);
 
-		// call LocationCallback
+		/* call LocationCallback */
 		if (cb) {
 			cb(arg, xps_plugint_test->location, NULL);
 			xps_plugint_test->location_cb = cb;
@@ -194,30 +191,27 @@ int geoclue_plugin_test_location(unsigned long period, LocationCallback cb, void
 		LOG_PLUGIN(LOG_DEBUG, "geoclue_plugin_test_location after call callback");
 	}
 
-	return TRUE;	// to test online
-	//return FALSE;	// to test the offline
+	return TRUE;	/* to test online */
+	/*return FALSE;	// to test the offline */
 }
 int geoclue_plugin_test_cancel(void *handle, CancelCallback cb, void *arg)
 {
 	LOG_PLUGIN(LOG_DEBUG, "geoclue_plugin_test_cancel called");
-	// check handle
+	/* check handle */
 	if (handle) {
 		LOG_PLUGIN(LOG_DEBUG, "canel handle %s", handle);
 		g_free(handle);
 		handle = NULL;
 	}
 
-	// call CancelCallback
+	/* call CancelCallback */
 	if (cb) {
 		cb(arg);
 	}
 	return TRUE;
 }
 
-void geoclue_plugin_test_get_offline_token(const unsigned char *key,
-			unsigned int keyLengh,
-			OfflineTokenCallback cb,
-			void *arg)
+void geoclue_plugin_test_get_offline_token(const unsigned char *key, unsigned int keyLengh, OfflineTokenCallback cb, void *arg)
 {
 	LOG_PLUGIN(LOG_DEBUG, "geoclue_plugin_test_get_offline_token called");
 
@@ -228,7 +222,7 @@ void geoclue_plugin_test_get_offline_token(const unsigned char *key,
 		if (key_copied) {
 			LOG_PLUGIN(LOG_DEBUG, "key_copied [%s]", key_copied);
 
-			// call OfflineTokenCallback
+			/* call OfflineTokenCallback */
 			if (cb) {
 				char *token = g_strdup("samsung_token");
 				LOG_PLUGIN(LOG_DEBUG, "geoclue_plugin_test_get_offline_token: before callback");
@@ -244,11 +238,11 @@ void geoclue_plugin_test_get_offline_token(const unsigned char *key,
 
 }
 int geoclue_plugin_test_offline_location(const unsigned char *key,
-			unsigned int keyLength,
-			const unsigned char *token,
-			unsigned int tokenSize,
-			LocationCallback cb,
-			void *arg)
+		unsigned int keyLength,
+		const unsigned char *token,
+		unsigned int tokenSize,
+		LocationCallback cb,
+		void *arg)
 {
 	LOG_PLUGIN(LOG_DEBUG, "geoclue_plugin_test_offline_location called");
 

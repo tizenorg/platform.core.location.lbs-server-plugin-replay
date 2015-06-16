@@ -90,20 +90,20 @@ int nmea_parser_tokenize(char input[], char *token[])
 
 	while ((*s != 0) && (num_tokens < MAX_TOEKNS)) {
 		switch (state) {
-		case 0:
-			if (*s == ',') {
-				*s = 0;
-				state = 1;
-			}
-			break;
-		case 1:
-			token[num_tokens++] = s;
-			if (*s == ',') {
-				*s = 0;
-			} else {
-				state = 0;
-			}
-			break;
+			case 0:
+				if (*s == ',') {
+					*s = 0;
+					state = 1;
+				}
+				break;
+			case 1:
+				token[num_tokens++] = s;
+				if (*s == ',') {
+					*s = 0;
+				} else {
+					state = 0;
+				}
+				break;
 		}
 		s++;
 	}
@@ -166,7 +166,7 @@ static double nmea_parser_get_altitude(const char *alt, const char *unit)
 	return altitude;
 }
 
-static int nmea_parser_gpgga(char *token[], pos_data_t * pos, sv_data_t * sv)
+static int nmea_parser_gpgga(char *token[], pos_data_t *pos, sv_data_t *sv)
 {
 	double latitude, longitude, altitude;
 	int quality;
@@ -179,13 +179,13 @@ static int nmea_parser_gpgga(char *token[], pos_data_t * pos, sv_data_t * sv)
 		return READ_NOT_FIXED;
 	}
 
-//	utctime = atoi(token[1]);
+	/*	utctime = atoi(token[1]); */
 	latitude = nmea_parser_get_latitude(token[2], token[3]);
 	longitude = nmea_parser_get_longitude(token[4], token[5]);
 	altitude = nmea_parser_get_altitude(token[9], token[10]);
-//	num_of_sat_used = atoi(token[7]);
-//	eph = atof(token[8]);
-//	geoid = nmea_parser_get_altitude(token[11], token[12]);
+	/*	num_of_sat_used = atoi(token[7]); */
+	/*	eph = atof(token[8]); */
+	/*	geoid = nmea_parser_get_altitude(token[11], token[12]); */
 
 	pos->latitude = latitude;
 	pos->longitude = longitude;
@@ -196,24 +196,24 @@ static int nmea_parser_gpgga(char *token[], pos_data_t * pos, sv_data_t * sv)
 	return READ_SUCCESS;
 }
 
-static int nmea_parser_gprmc(char *token[], pos_data_t * pos)
+static int nmea_parser_gprmc(char *token[], pos_data_t *pos)
 {
 	char *status;
 	double latitude, longitude, speed, bearing;
 
-	status = token[2];	//warn = *token[2];
+	status = token[2];	/*warn = *token[2]; */
 	if (strcmp(status, "V") == 0) {
 		LOG_PLUGIN(DBG_LOW, "Not fixed");
 		return READ_NOT_FIXED;
 	}
 
-//	utctime = atoi(token[1]);
+	/*	utctime = atoi(token[1]); */
 	latitude = nmea_parser_get_latitude(token[3], token[4]);
 	longitude = nmea_parser_get_longitude(token[5], token[6]);
 	speed = atof(token[7]);
 	bearing = atof(token[8]);
-//	date = atoi(token[9]);
-//	magvar = atof(token[10]);
+	/*	date = atoi(token[9]); */
+	/*	magvar = atof(token[10]); */
 
 	pos->latitude = latitude;
 	pos->longitude = longitude;
@@ -223,27 +223,27 @@ static int nmea_parser_gprmc(char *token[], pos_data_t * pos)
 	return READ_SUCCESS;
 }
 
-static int nmea_parser_gpgll(char *token[], pos_data_t * pos)
+static int nmea_parser_gpgll(char *token[], pos_data_t *pos)
 {
 	char *status;
 	double latitude, longitude;
 
-	status = token[6];	//warn = *token[2];
+	status = token[6];	/*warn = *token[2]; */
 	if (strcmp(status, "V") == 0) {
 		LOG_PLUGIN(DBG_LOW, "Not fixed");
 		return READ_NOT_FIXED;
 	}
 
-		latitude = nmea_parser_get_latitude(token[1], token[2]);
-		longitude = nmea_parser_get_longitude(token[3], token[4]);
+	latitude = nmea_parser_get_latitude(token[1], token[2]);
+	longitude = nmea_parser_get_longitude(token[3], token[4]);
 
-		pos->latitude = latitude;
-		pos->longitude = longitude;
+	pos->latitude = latitude;
+	pos->longitude = longitude;
 
-		return READ_SUCCESS;
+	return READ_SUCCESS;
 }
 
-static int nmea_parser_gpgsa(char *token[], pos_data_t * pos)
+static int nmea_parser_gpgsa(char *token[], pos_data_t *pos)
 {
 	int i, fix_type;
 
@@ -253,27 +253,27 @@ static int nmea_parser_gpgsa(char *token[], pos_data_t * pos)
 		return READ_NOT_FIXED;
 	}
 
-//	selection_type = *token[1];
+	/*	selection_type = *token[1]; */
 
 	memset(used_sat, 0, sizeof(used_sat));
 	for (i = 0; i < MAX_GPS_NUM_SAT_USED; i++) {
 		used_sat[i] = atoi(token[i + 3]);
 	}
 
-//	pdop = atof(token[15]);
-//	hdop = atof(token[16]);
-//	vdop = atof(token[17]);
+	/*	pdop = atof(token[15]); */
+	/*	hdop = atof(token[16]); */
+	/*	vdop = atof(token[17]); */
 
 	return READ_SUCCESS;
 }
 
-static int nmea_parser_gpvtg(char *token[], pos_data_t * pos)
+static int nmea_parser_gpvtg(char *token[], pos_data_t *pos)
 {
 	double true_course, kmh_speed;
 
 	true_course = atof(token[1]);
-//	magnetic_course = atof(token[3]);
-//	knot_speed = atof(token[5]);
+	/*	magnetic_course = atof(token[3]); */
+	/*	knot_speed = atof(token[5]); */
 	kmh_speed = atof(token[7]);
 
 	pos->speed = kmh_speed * KMPH_TO_MPS;
@@ -282,13 +282,13 @@ static int nmea_parser_gpvtg(char *token[], pos_data_t * pos)
 	return READ_SUCCESS;
 }
 
-static int nmea_parser_gpgsv(char *token[], sv_data_t * sv)
+static int nmea_parser_gpgsv(char *token[], sv_data_t *sv)
 {
 	int i, j;
 	int p, q, iter;
 	int msg_num, num_sv;
 
-//	num_sen = atoi(token[1]);
+	/*	num_sen = atoi(token[1]); */
 	msg_num = atoi(token[2]);
 	if (msg_num < 1) {
 		LOG_PLUGIN(DBG_LOW, "There is not GSV message");
@@ -317,7 +317,7 @@ static int nmea_parser_gpgsv(char *token[], sv_data_t * sv)
 	return READ_SUCCESS;
 }
 
-int nmea_parser_sentence(char *sentence, char *token[], pos_data_t * pos, sv_data_t * sv)
+int nmea_parser_sentence(char *sentence, char *token[], pos_data_t *pos, sv_data_t *sv)
 {
 	int ret = READ_SUCCESS;
 	if (strcmp(sentence, "GPGGA") == 0) {
@@ -339,7 +339,7 @@ int nmea_parser_sentence(char *sentence, char *token[], pos_data_t * pos, sv_dat
 	return ret;
 }
 
-int nmea_parser(char *data, pos_data_t * pos, sv_data_t * sv)
+int nmea_parser(char *data, pos_data_t *pos, sv_data_t *sv)
 {
 	int ret = READ_SUCCESS;
 	read_error_t err;

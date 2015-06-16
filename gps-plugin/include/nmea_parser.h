@@ -24,11 +24,11 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif				// __cplusplus
+#endif				/* __cplusplus */
 
-int nmea_parser(char *data, pos_data_t * pos, sv_data_t * sv);
+int nmea_parser(char *data, pos_data_t *pos, sv_data_t *sv);
 
 #ifdef __cplusplus
 }
-#endif				// __cplusplus
+#endif				/* __cplusplus */
 #endif

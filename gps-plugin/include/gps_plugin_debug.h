@@ -27,7 +27,7 @@ extern "C" {
 #endif
 
 #define GPS_DLOG
-#define GPS_DLOG_DEBUG		// filename and line number will be shown
+#define GPS_DLOG_DEBUG		/* filename and line number will be shown */
 
 #ifdef GPS_DLOG
 #include <dlog.h>
@@ -38,10 +38,10 @@ extern "C" {
 #define DBG_WARN	LOG_WARN
 #define DBG_ERR		LOG_ERROR
 
-#ifdef GPS_DLOG_DEBUG		// Debug mode
+#ifdef GPS_DLOG_DEBUG		/* Debug mode */
 #define LOG_PLUGIN(dbg_lvl,fmt,args...)		SLOG(dbg_lvl, TAG_GPS_PLUGIN, "[%-40s: %-4d] "fmt, __FILE__, __LINE__, ##args)
 #define SECLOG_PLUGIN(dbg_lvl,fmt,args...)	SECURE_SLOG(dbg_lvl, TAG_GPS_PLUGIN, "[%-40s: %-4d] "fmt, __FILE__, __LINE__, ##args)
-#else				// Release(commercial) mode
+#else				/* Release(commercial) mode */
 #define LOG_PLUGIN(dbg_lvl,fmt,args...)		SLOG(dbg_lvl, TAG_GPS_PLUGIN, fmt, ##args)
 #define SECLOG_PLUGIN(dbg_lvl,fmt,args...)	SECURE_SLOG(dbg_lvl, TAG_GPS_PLUGIN, fmt, ##args)
 #endif
