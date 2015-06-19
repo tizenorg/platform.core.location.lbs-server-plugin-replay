@@ -49,11 +49,11 @@ mkdir -p %{buildroot}%{DATADIR}/replay
 cp -a nmea-log/*.log %{buildroot}%{DATADIR}/replay
 
 %post
-rm -rf {%_libdir}/liblbs-server-plugin.so
-ln -sf {%_libdir}/liblbs-server-plugin-replay.so ${_libdir}/liblbs-server-plugin.so
+rm -rf %{_libdir}/liblbs-server-plugin.so
+ln -sf %{_libdir}/liblbs-server-plugin-replay.so %{_libdir}/liblbs-server-plugin.so
 #for compatible with old version
-ln -sf {%_libdir}/liblbs-server-plugin-replay.so ${_libdir}/libSLP-lbs-plugin-replay.so
-ln -sf {%_libdir}/liblbs-server-plugin-replay.so ${_libdir}/libSLP-lbs-plugin.so
+ln -sf %{_libdir}/liblbs-server-plugin-replay.so %{_libdir}/libSLP-lbs-plugin-replay.so
+ln -sf %{_libdir}/liblbs-server-plugin-replay.so %{_libdir}/libSLP-lbs-plugin.so
 /sbin/ldconfig
 
 %postun -p /sbin/ldconfig
