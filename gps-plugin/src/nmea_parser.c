@@ -44,7 +44,7 @@
 
 int used_sat[MAX_GPS_NUM_SAT_USED] = { 0, };
 
-static char nmea_parser_c2n(char ch)
+static unsigned char nmea_parser_c2n(unsigned char ch)
 {
 	if (ch <= '9') {
 		return ch - '0';
