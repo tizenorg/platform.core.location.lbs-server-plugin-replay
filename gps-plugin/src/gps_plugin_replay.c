@@ -49,11 +49,14 @@ typedef struct {
 	FILE *batch_fd;
 	int interval;
 	int replay_mode;
+	int lcd_mode;
 
 	int batch_mode;
+	int batch_interval;
 	int batch_period;
 	int num_of_batch;
 	time_t batch_start_time;
+	gboolean is_flush;
 
 	pos_data_t *pos_data;
 	batch_data_t *batch_data;
@@ -147,13 +150,24 @@ void gps_plugin_replay_batch_event(pos_data_t *data, replay_timeout *timer)
 		}
 	}
 
-	if ((timestamp - timer->batch_start_time) >= timer->batch_period) {
+	if (timer->lcd_mode == VCONFKEY_PM_STATE_NORMAL) {
+		if ((timestamp - timer->batch_start_time) >= timer->batch_interval) {
+			timer->is_flush = TRUE;
+		}
+	} else {
+		if ((timestamp - timer->batch_start_time) >= timer->batch_period) {
+			timer->is_flush = TRUE;
+		}
+	}
+
+	if (timer->is_flush) {
 		LOG_PLUGIN(DBG_LOW, "Batch invoked, Batch interval is expired or Batch stopped");
 		gps_event_info_t gps_event;
 		memset(&gps_event, 0, sizeof(gps_event_info_t));
 
 		gps_event.event_id = GPS_EVENT_REPORT_BATCH;
 		timer->batch_start_time = timestamp;
+		timer->is_flush = FALSE;
 
 		if (timer->num_of_batch < 1) {
 			LOG_PLUGIN(DBG_ERR, "There is no Batch data");
@@ -588,6 +602,7 @@ gboolean gps_plugin_start_batch_mode(replay_timeout *timer, int batch_interval, 
 	gps_plugin_respond_start_session(ret);
 
 	timer->batch_mode = BATCH_MODE_ON;
+	timer->batch_interval = batch_interval;
 	timer->batch_period = batch_period;
 	timer->batch_start_time = timestamp;
 
@@ -626,6 +641,20 @@ static void replay_mode_changed_cb(keynode_t *key, void *data)
 	return;
 }
 
+static void display_mode_changed_cb(keynode_t * key, void *data)
+{
+	if (setting_get_int(VCONFKEY_PM_STATE, &g_replay_timer->lcd_mode) == FALSE) {
+		LOG_PLUGIN(DBG_ERR, "Fail to get lcd state");
+		g_replay_timer->lcd_mode = VCONFKEY_PM_STATE_LCDOFF;
+	}
+
+	if (g_replay_timer->lcd_mode == VCONFKEY_PM_STATE_NORMAL) {
+		g_replay_timer->is_flush = TRUE;
+	}
+
+	return;
+}
+
 replay_timeout *gps_plugin_replay_timer_init()
 {
 	replay_timeout *timer = NULL;
@@ -642,11 +671,17 @@ replay_timeout *gps_plugin_replay_timer_init()
 	timer->batch_fd = NULL;
 	timer->num_of_batch = 0;
 	timer->batch_mode = BATCH_MODE_OFF;
+	timer->is_flush = FALSE;
 
 	if (setting_get_int(VCONFKEY_LOCATION_REPLAY_MODE, &timer->replay_mode) == FALSE) {
 		timer->replay_mode = REPLAY_OFF;
 	}
 	setting_notify_key_changed(VCONFKEY_LOCATION_REPLAY_MODE, replay_mode_changed_cb);
+
+	if (setting_get_int(VCONFKEY_PM_STATE, &timer->lcd_mode) == FALSE) {
+		timer->lcd_mode = VCONFKEY_PM_STATE_LCDOFF;
+	}
+	setting_notify_key_changed(VCONFKEY_PM_STATE, display_mode_changed_cb);
 
 	timer->pos_data = (pos_data_t *) malloc(sizeof(pos_data_t));
 	if (timer->pos_data == NULL) {
