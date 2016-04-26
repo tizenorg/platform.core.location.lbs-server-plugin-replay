@@ -30,6 +30,7 @@
 
 #include <gps_plugin_intf.h>
 #include <dd-display.h>
+#include <tzplatform_config.h>
 
 #include "gps_plugin_debug.h"
 #include "nmea_parser.h"
@@ -38,8 +39,6 @@
 #define REPLAY_NMEA_SET_SIZE		4096
 #define REPLAY_NMEA_SENTENCE_SIZE	128
 
-#define LBS_SERVER_FOLDER	"/opt/usr/media/lbs-server"
-#define BATCH_LOG			LBS_SERVER_FOLDER"/location_batch.log"
 
 gps_event_cb g_gps_event_cb = NULL;
 void *g_user_data = NULL;
@@ -114,18 +113,20 @@ void gps_plugin_replay_batch_event(pos_data_t *data, replay_timeout *timer)
 	time_t timestamp;
 	time(&timestamp);
 
+	const char *batch_path = tzplatform_mkpath(TZ_SYS_MEDIA, "lbs-server/location_batch.log");
 	if (timer->batch_fd == NULL) {
 		if (timer->batch_mode == BATCH_MODE_ON) {
 
 			struct stat st = {0};
-			if (stat(LBS_SERVER_FOLDER, &st) == -1) {
-				if (mkdir(LBS_SERVER_FOLDER, 0777) == -1) {
+			const char *lbs_server_path = tzplatform_mkpath(TZ_SYS_MEDIA, "lbs-server");
+			if (stat(lbs_server_path, &st) == -1) {
+				if (mkdir(lbs_server_path, 0777) == -1) {
 					LOG_PLUGIN(DBG_ERR, "Fail to create lbs-server folder");
 					return ;
 				}
 			}
 
-			timer->batch_fd = fopen(BATCH_LOG, "w+");
+			timer->batch_fd = fopen(batch_path, "w+");
 			if (timer->batch_fd == NULL) {
 				LOG_PLUGIN(DBG_ERR, "Fail to open file [Not available batch_fd]");
 				return ;
@@ -143,7 +144,7 @@ void gps_plugin_replay_batch_event(pos_data_t *data, replay_timeout *timer)
 
 			ret = fwrite(buf, 1, strlen(buf), timer->batch_fd);
 			if (ret != strlen(buf)) {
-				LOG_PLUGIN(DBG_ERR, "Fail to write file[%s]", BATCH_LOG);
+				LOG_PLUGIN(DBG_ERR, "Fail to write file[%s]", batch_path);
 			}
 
 			(timer->num_of_batch)++ ;
@@ -165,6 +166,12 @@ void gps_plugin_replay_batch_event(pos_data_t *data, replay_timeout *timer)
 		gps_event_info_t gps_event;
 		memset(&gps_event, 0, sizeof(gps_event_info_t));
 
+		if (timer->batch_fd != NULL) {
+			if (fclose(timer->batch_fd) != 0)
+				LOG_PLUGIN(DBG_ERR, "Fail to close file");
+			timer->batch_fd = NULL;
+		}
+
 		gps_event.event_id = GPS_EVENT_REPORT_BATCH;
 		timer->batch_start_time = timestamp;
 		timer->is_flush = FALSE;
@@ -180,11 +187,6 @@ void gps_plugin_replay_batch_event(pos_data_t *data, replay_timeout *timer)
 		if (g_gps_event_cb != NULL) {
 			g_gps_event_cb(&gps_event, g_user_data);
 			timer->num_of_batch = 0;
-		}
-
-		if (timer->batch_fd != NULL) {
-			fclose(timer->batch_fd);
-			timer->batch_fd = NULL;
 		}
 	}
 }
@@ -505,16 +507,18 @@ gboolean gps_plugin_get_nmea_fd(replay_timeout *timer)
 	if (str == NULL) {
 		return FALSE;
 	}
-	snprintf(replay_file_path, sizeof(replay_file_path), NMEA_FILE_PATH"%s", str);
+	const char *nmea_file_path = tzplatform_mkpath(TZ_SYS_MEDIA, "lbs-server/replay/");
+	snprintf(replay_file_path, sizeof(replay_file_path), "%s%s", nmea_file_path, str);
 	SECLOG_PLUGIN(DBG_ERR, "replay file name : %s", replay_file_path);
 	free(str);
 
 	timer->fd = fopen(replay_file_path, "r");
 	if (timer->fd == NULL) {
 		SECLOG_PLUGIN(DBG_ERR, "fopen(%s) failed", replay_file_path);
-		timer->fd = fopen(DEFAULT_NMEA_LOG, "r");
+		const char *default_nmea_log = tzplatform_mkpath(TZ_SYS_RO_ETC, "lbs-server/replay/nmea_replay.log");
+		timer->fd = fopen(default_nmea_log, "r");
 		if (timer->fd == NULL) {
-			SECLOG_PLUGIN(DBG_ERR, "fopen(%s) failed", DEFAULT_NMEA_LOG);
+			SECLOG_PLUGIN(DBG_ERR, "fopen(%s) failed", default_nmea_log);
 			return FALSE;
 		}
 	}

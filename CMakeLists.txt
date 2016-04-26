@@ -7,7 +7,7 @@ SET(PREFIX ${CMAKE_INSTALL_PREFIX})
 
 # Set required packages
 INCLUDE(FindPkgConfig)
-pkg_check_modules(pkgs REQUIRED glib-2.0 vconf dlog lbs-server-plugin deviced)
+pkg_check_modules(pkgs REQUIRED glib-2.0 vconf dlog lbs-server-plugin deviced libtzplatform-config)
 
 FOREACH(flag ${pkgs_CFLAGS})
 	SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} ${flag}")

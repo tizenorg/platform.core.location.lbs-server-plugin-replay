@@ -301,6 +301,10 @@ static int nmea_parser_gpgsv(char *token[], sv_data_t *sv)
 	for (i = 0; i < iter; i++) {
 		q = (i + 1) * 4;
 		p = i + 4 * (msg_num - 1);
+		if (p > 31) {
+			LOG_PLUGIN(DBG_LOW, "Out of bounds");
+			return READ_ERROR;
+		}
 		sv->sat[p].prn = atoi(token[q]);
 		for (j = 0; j < MAX_GPS_NUM_SAT_USED; j++) {
 			if (sv->sat[p].prn == used_sat[j]) {

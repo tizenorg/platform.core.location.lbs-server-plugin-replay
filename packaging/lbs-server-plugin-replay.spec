@@ -1,6 +1,6 @@
 Name:       lbs-server-plugin-replay
 Summary:    LBS Server plugin library for replay mode
-Version:    0.2.3
+Version:    0.2.4
 Release:    1
 Group:      Location/Libraries
 License:    Apache-2.0
@@ -12,6 +12,7 @@ BuildRequires:  pkgconfig(vconf)
 BuildRequires:  pkgconfig(dlog)
 BuildRequires:  pkgconfig(lbs-server-plugin)
 BuildRequires:  pkgconfig(deviced)
+BuildRequires:  pkgconfig(libtzplatform-config)
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
 

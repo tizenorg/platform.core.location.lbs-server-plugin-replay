@@ -25,8 +25,6 @@
 #include <vconf.h>
 #include <vconf-internal-location-keys.h>
 
-#define NMEA_FILE_PATH "/opt/usr/media/lbs-server/replay/"
-#define DEFAULT_NMEA_LOG "/etc/lbs-server/replay/nmea_replay.log"
 
 typedef enum {
 	REPLAY_OFF = 0,
