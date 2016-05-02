@@ -103,9 +103,8 @@ void gps_plugin_replay_pos_event(pos_data_t *data)
 		gps_event.event_data.pos_ind.pos.ver_accuracy = data->ver_accuracy;
 	}
 
-	if (g_gps_event_cb != NULL) {
+	if (g_gps_event_cb != NULL)
 		g_gps_event_cb(&gps_event, g_user_data);
-	}
 }
 
 void gps_plugin_replay_batch_event(pos_data_t *data, replay_timeout *timer)
@@ -143,22 +142,20 @@ void gps_plugin_replay_batch_event(pos_data_t *data, replay_timeout *timer)
 			LOG_PLUGIN(DBG_LOW, "Add location info to batch file [%s]", buf);
 
 			ret = fwrite(buf, 1, strlen(buf), timer->batch_fd);
-			if (ret != strlen(buf)) {
+			if (ret != strlen(buf))
 				LOG_PLUGIN(DBG_ERR, "Fail to write file[%s]", batch_path);
-			}
 
 			(timer->num_of_batch)++ ;
 		}
 	}
 
 	if (timer->lcd_mode == VCONFKEY_PM_STATE_NORMAL) {
-		if ((timestamp - timer->batch_start_time) >= timer->batch_interval) {
+		if ((timestamp - timer->batch_start_time) >= timer->batch_interval)
 			timer->is_flush = TRUE;
-		}
+
 	} else {
-		if ((timestamp - timer->batch_start_time) >= timer->batch_period) {
+		if ((timestamp - timer->batch_start_time) >= timer->batch_period)
 			timer->is_flush = TRUE;
-		}
 	}
 
 	if (timer->is_flush) {
@@ -218,9 +215,8 @@ void gps_plugin_replay_sv_event(sv_data_t *data)
 		}
 	}
 
-	if (g_gps_event_cb != NULL) {
+	if (g_gps_event_cb != NULL)
 		g_gps_event_cb(&gps_event, g_user_data);
-	}
 }
 
 void gps_plugin_replay_nmea_event(nmea_data_t *data)
@@ -253,9 +249,8 @@ void gps_plugin_replay_nmea_event(nmea_data_t *data)
 		memcpy(gps_event.event_data.nmea_ind.nmea.data, data->data, data->len);
 	}
 
-	if (g_gps_event_cb != NULL) {
+	if (g_gps_event_cb != NULL)
 		g_gps_event_cb(&gps_event, g_user_data);
-	}
 
 	if (gps_event.event_data.nmea_ind.nmea.data != NULL) {
 		free(gps_event.event_data.nmea_ind.nmea.data);
@@ -268,15 +263,13 @@ void gps_plugin_respond_start_session(gboolean ret)
 	gps_event_info_t gps_event;
 	gps_event.event_id = GPS_EVENT_START_SESSION;
 
-	if (ret == TRUE) {
+	if (ret == TRUE)
 		gps_event.event_data.start_session_rsp.error = GPS_ERR_NONE;
-	} else {
+	else
 		gps_event.event_data.start_session_rsp.error = GPS_ERR_COMMUNICATION;
-	}
 
-	if (g_gps_event_cb != NULL) {
+	if (g_gps_event_cb != NULL)
 		g_gps_event_cb(&gps_event, g_user_data);
-	}
 }
 
 void gps_plugin_respond_stop_session(void)
@@ -286,9 +279,8 @@ void gps_plugin_respond_stop_session(void)
 	gps_event.event_id = GPS_EVENT_STOP_SESSION;
 	gps_event.event_data.stop_session_rsp.error = GPS_ERR_NONE;
 
-	if (g_gps_event_cb != NULL) {
+	if (g_gps_event_cb != NULL)
 		g_gps_event_cb(&gps_event, g_user_data);
-	}
 }
 
 gboolean gps_plugin_replay_read_nmea(replay_timeout *timer, char *nmea_data)
@@ -410,9 +402,9 @@ gboolean gps_plugin_replay_timeout_cb(gpointer data)
 	}
 
 	if (g_gps_event_cb != NULL) {
-		if (err != READ_NOT_FIXED) {
+		if (err != READ_NOT_FIXED)
 			gps_plugin_replay_pos_event(timer->pos_data);
-		}
+
 		gps_plugin_replay_sv_event(timer->sv_data);
 	}
 	ret = TRUE;
@@ -464,9 +456,8 @@ gboolean gps_plugin_batch_replay_timeout_cb(gpointer data)
 	}
 
 	if (g_gps_event_cb != NULL) {
-		if (timer->batch_mode == BATCH_MODE_ON) {
+		if (timer->batch_mode == BATCH_MODE_ON)
 			gps_plugin_replay_batch_event(timer->pos_data, timer);
-		}
 	}
 	ret = TRUE;
 	return ret;
@@ -474,9 +465,9 @@ gboolean gps_plugin_batch_replay_timeout_cb(gpointer data)
 
 void gps_plugin_stop_replay_mode(replay_timeout *timer)
 {
-	if (timer->replay_mode == REPLAY_NMEA && fclose(timer->fd) != 0) {
+	if (timer->replay_mode == REPLAY_NMEA && fclose(timer->fd) != 0)
 		LOG_PLUGIN(DBG_ERR, "fclose failed");
-	}
+
 	timer->fd = NULL;
 
 	if (timer->timeout_src != NULL && timer->default_context != NULL && !g_source_is_destroyed(timer->timeout_src)) {
@@ -504,9 +495,9 @@ gboolean gps_plugin_get_nmea_fd(replay_timeout *timer)
 	char *str;
 
 	str = setting_get_string(VCONFKEY_LOCATION_NMEA_FILE_NAME);
-	if (str == NULL) {
+	if (str == NULL)
 		return FALSE;
-	}
+
 	const char *nmea_file_path = tzplatform_mkpath(TZ_SYS_MEDIA, "lbs-server/replay/");
 	snprintf(replay_file_path, sizeof(replay_file_path), "%s%s", nmea_file_path, str);
 	SECLOG_PLUGIN(DBG_ERR, "replay file name : %s", replay_file_path);
@@ -530,16 +521,15 @@ gboolean gps_plugin_start_replay_mode(replay_timeout *timer)
 	gboolean ret = FALSE;
 
 	if (timer->replay_mode == REPLAY_NMEA) {
-		if (gps_plugin_get_nmea_fd(timer) == FALSE) {
+		if (gps_plugin_get_nmea_fd(timer) == FALSE)
 			return FALSE;
-		}
 	}
 
 	if (timer->default_context == NULL) {
 		timer->default_context = g_main_context_default();
-		if (timer->default_context == NULL) {
+
+		if (timer->default_context == NULL)
 			return ret;
-		}
 	}
 
 	if (timer->timeout_src != NULL) {
@@ -574,16 +564,15 @@ gboolean gps_plugin_start_batch_mode(replay_timeout *timer, int batch_interval, 
 	time(&timestamp);
 
 	if (timer->replay_mode == REPLAY_NMEA) {
-		if (gps_plugin_get_nmea_fd(timer) == FALSE) {
+		if (gps_plugin_get_nmea_fd(timer) == FALSE)
 			return FALSE;
-		}
 	}
 
 	if (timer->default_context == NULL) {
 		timer->default_context = g_main_context_default();
-		if (timer->default_context == NULL) {
+
+		if (timer->default_context == NULL)
 			return ret;
-		}
 	}
 
 	if (timer->timeout_src != NULL) {
@@ -615,9 +604,8 @@ gboolean gps_plugin_start_batch_mode(replay_timeout *timer, int batch_interval, 
 
 void gps_plugin_stop_batch_mode(replay_timeout *timer)
 {
-	if (timer->batch_mode == BATCH_MODE_ON) {
+	if (timer->batch_mode == BATCH_MODE_ON)
 		timer->batch_mode = BATCH_MODE_OFF;
-	}
 
 	if (timer->batch_fd != NULL) {
 		fclose(timer->batch_fd);
@@ -628,14 +616,13 @@ void gps_plugin_stop_batch_mode(replay_timeout *timer)
 
 static void replay_mode_changed_cb(keynode_t *key, void *data)
 {
-	if (setting_get_int(VCONFKEY_LOCATION_REPLAY_MODE, &g_replay_timer->replay_mode) == FALSE) {
+	if (setting_get_int(VCONFKEY_LOCATION_REPLAY_MODE, &g_replay_timer->replay_mode) == FALSE)
 		g_replay_timer->replay_mode = REPLAY_OFF;
-	}
 
 	if (g_replay_timer->replay_mode == REPLAY_NMEA) {
-		if (gps_plugin_get_nmea_fd(g_replay_timer) == FALSE) {
+		if (gps_plugin_get_nmea_fd(g_replay_timer) == FALSE)
 			LOG_PLUGIN(DBG_ERR, "Fail to get nmea fd.");
-		}
+
 	} else {
 		if (g_replay_timer->fd != NULL) {
 			fclose(g_replay_timer->fd);
@@ -652,9 +639,8 @@ static void display_mode_changed_cb(keynode_t * key, void *data)
 		g_replay_timer->lcd_mode = VCONFKEY_PM_STATE_LCDOFF;
 	}
 
-	if (g_replay_timer->lcd_mode == VCONFKEY_PM_STATE_NORMAL) {
+	if (g_replay_timer->lcd_mode == VCONFKEY_PM_STATE_NORMAL)
 		g_replay_timer->is_flush = TRUE;
-	}
 
 	return;
 }
@@ -677,14 +663,14 @@ replay_timeout *gps_plugin_replay_timer_init()
 	timer->batch_mode = BATCH_MODE_OFF;
 	timer->is_flush = FALSE;
 
-	if (setting_get_int(VCONFKEY_LOCATION_REPLAY_MODE, &timer->replay_mode) == FALSE) {
+	if (setting_get_int(VCONFKEY_LOCATION_REPLAY_MODE, &timer->replay_mode) == FALSE)
 		timer->replay_mode = REPLAY_OFF;
-	}
+
 	setting_notify_key_changed(VCONFKEY_LOCATION_REPLAY_MODE, replay_mode_changed_cb);
 
-	if (setting_get_int(VCONFKEY_PM_STATE, &timer->lcd_mode) == FALSE) {
+	if (setting_get_int(VCONFKEY_PM_STATE, &timer->lcd_mode) == FALSE)
 		timer->lcd_mode = VCONFKEY_PM_STATE_LCDOFF;
-	}
+
 	setting_notify_key_changed(VCONFKEY_PM_STATE, display_mode_changed_cb);
 
 	timer->pos_data = (pos_data_t *) malloc(sizeof(pos_data_t));
@@ -729,9 +715,8 @@ replay_timeout *gps_plugin_replay_timer_init()
 
 void gps_plugin_replay_timer_deinit(replay_timeout *timer)
 {
-	if (timer == NULL) {
+	if (timer == NULL)
 		return;
-	}
 
 	if (timer->pos_data != NULL) {
 		free(timer->pos_data);
@@ -775,30 +760,30 @@ int gps_plugin_replay_gps_request(gps_action_t gps_action, void *gps_action_data
 	gps_action_start_data_t *gps_start_data = gps_action_data;
 
 	switch (gps_action) {
-		case GPS_ACTION_SEND_PARAMS:
-			break;
-		case GPS_ACTION_START_SESSION:
-			gps_plugin_start_replay_mode(g_replay_timer);
-			break;
-		case GPS_ACTION_STOP_SESSION:
-			gps_plugin_stop_replay_mode(g_replay_timer);
-			break;
-		case GPS_ACTION_START_BATCH:
-			gps_plugin_start_batch_mode(g_replay_timer, gps_start_data->interval, gps_start_data->period);
-			break;
-		case GPS_ACTION_STOP_BATCH:
-			gps_plugin_stop_batch_mode(g_replay_timer);
-			gps_plugin_stop_replay_mode(g_replay_timer);
-			break;
-		case GPS_INDI_SUPL_VERIFICATION:
-		case GPS_INDI_SUPL_DNSQUERY:
-		case GPS_ACTION_START_FACTTEST:
-		case GPS_ACTION_STOP_FACTTEST:
-		case GPS_ACTION_REQUEST_SUPL_NI:
-			LOG_PLUGIN(DBG_LOW, "Don't use action type : [ %d ]", gps_action);
-			break;
-		default:
-			break;
+	case GPS_ACTION_SEND_PARAMS:
+		break;
+	case GPS_ACTION_START_SESSION:
+		gps_plugin_start_replay_mode(g_replay_timer);
+		break;
+	case GPS_ACTION_STOP_SESSION:
+		gps_plugin_stop_replay_mode(g_replay_timer);
+		break;
+	case GPS_ACTION_START_BATCH:
+		gps_plugin_start_batch_mode(g_replay_timer, gps_start_data->interval, gps_start_data->period);
+		break;
+	case GPS_ACTION_STOP_BATCH:
+		gps_plugin_stop_batch_mode(g_replay_timer);
+		gps_plugin_stop_replay_mode(g_replay_timer);
+		break;
+	case GPS_INDI_SUPL_VERIFICATION:
+	case GPS_INDI_SUPL_DNSQUERY:
+	case GPS_ACTION_START_FACTTEST:
+	case GPS_ACTION_STOP_FACTTEST:
+	case GPS_ACTION_REQUEST_SUPL_NI:
+		LOG_PLUGIN(DBG_LOW, "Don't use action type : [ %d ]", gps_action);
+		break;
+	default:
+		break;
 	}
 
 	return TRUE;

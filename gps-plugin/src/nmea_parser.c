@@ -46,11 +46,10 @@ int used_sat[MAX_GPS_NUM_SAT_USED] = { 0, };
 
 static unsigned char nmea_parser_c2n(unsigned char ch)
 {
-	if (ch <= '9') {
+	if (ch <= '9')
 		return ch - '0';
-	} else {
+	else
 		return (ch - 'A') + 10;
-	}
 }
 
 int nmea_parser_verify_checksum(char *nmea_sen)
@@ -60,13 +59,11 @@ int nmea_parser_verify_checksum(char *nmea_sen)
 	int checksum = 0;
 	int sum = 0;
 
-	for (i = 0; i < strlen(nmea_sen) && (nmea_sen[i] != '*'); i++) {
+	for (i = 0; i < strlen(nmea_sen) && (nmea_sen[i] != '*'); i++)
 		checksum ^= nmea_sen[i];
-	}
 
-	if (++i + 1 < strlen(nmea_sen)) {
+	if (++i + 1 < strlen(nmea_sen))
 		sum = (nmea_parser_c2n(nmea_sen[i]) << 4) + nmea_parser_c2n(nmea_sen[i + 1]);
-	}
 
 	if (sum == checksum) {
 		ret = 0;
@@ -90,20 +87,20 @@ int nmea_parser_tokenize(char input[], char *token[])
 
 	while ((*s != 0) && (num_tokens < MAX_TOEKNS)) {
 		switch (state) {
-			case 0:
-				if (*s == ',') {
-					*s = 0;
-					state = 1;
-				}
-				break;
-			case 1:
-				token[num_tokens++] = s;
-				if (*s == ',') {
-					*s = 0;
-				} else {
-					state = 0;
-				}
-				break;
+		case 0:
+			if (*s == ',') {
+				*s = 0;
+				state = 1;
+			}
+			break;
+		case 1:
+			token[num_tokens++] = s;
+			if (*s == ',')
+				*s = 0;
+			else
+				state = 0;
+
+			break;
 		}
 		s++;
 	}
@@ -117,9 +114,8 @@ static double nmea_parser_get_latitude(const char *lat, const char *bearing)
 	int deg;
 	double remainder;
 
-	if ((*lat == 0) || (*bearing == 0)) {
+	if ((*lat == 0) || (*bearing == 0))
 		return latitude;
-	}
 
 	ns = (*bearing == 'N') ? NORTH : SOUTH;
 
@@ -138,9 +134,8 @@ static double nmea_parser_get_longitude(const char *lon, const char *bearing)
 	int deg;
 	double remainder;
 
-	if (*lon == 0 || (*bearing == 0)) {
+	if (*lon == 0 || (*bearing == 0))
 		return longitude;
-	}
 
 	ew = (*bearing == 'E') ? EAST : WEST;
 
@@ -156,9 +151,8 @@ static double nmea_parser_get_altitude(const char *alt, const char *unit)
 {
 	double altitude;
 
-	if (*alt == 0) {
+	if (*alt == 0)
 		return 0.0;
-	}
 
 	altitude = atof(alt);
 	altitude = (*unit == 'M') ? altitude : altitude * METER_TO_FEET;
@@ -256,9 +250,9 @@ static int nmea_parser_gpgsa(char *token[], pos_data_t *pos)
 	/*	selection_type = *token[1]; */
 
 	memset(used_sat, 0, sizeof(used_sat));
-	for (i = 0; i < MAX_GPS_NUM_SAT_USED; i++) {
+	for (i = 0; i < MAX_GPS_NUM_SAT_USED; i++)
 		used_sat[i] = atoi(token[i + 3]);
-	}
+
 
 	/*	pdop = atof(token[15]); */
 	/*	hdop = atof(token[16]); */
@@ -324,21 +318,21 @@ static int nmea_parser_gpgsv(char *token[], sv_data_t *sv)
 int nmea_parser_sentence(char *sentence, char *token[], pos_data_t *pos, sv_data_t *sv)
 {
 	int ret = READ_SUCCESS;
-	if (strcmp(sentence, "GPGGA") == 0) {
+	if (strcmp(sentence, "GPGGA") == 0)
 		ret = nmea_parser_gpgga(token, pos, sv);
-	} else if (strcmp(sentence, "GPRMC") == 0) {
+	else if (strcmp(sentence, "GPRMC") == 0)
 		ret = nmea_parser_gprmc(token, pos);
-	} else if (strcmp(sentence, "GPGLL") == 0) {
+	else if (strcmp(sentence, "GPGLL") == 0)
 		ret = nmea_parser_gpgll(token, pos);
-	} else if (strcmp(sentence, "GPGSA") == 0) {
+	else if (strcmp(sentence, "GPGSA") == 0)
 		ret = nmea_parser_gpgsa(token, pos);
-	} else if (strcmp(sentence, "GPVTG") == 0) {
+	else if (strcmp(sentence, "GPVTG") == 0)
 		ret = nmea_parser_gpvtg(token, pos);
-	} else if (strcmp(sentence, "GPGSV") == 0) {
+	else if (strcmp(sentence, "GPGSV") == 0)
 		ret = nmea_parser_gpgsv(token, sv);
-	} else {
+	else
 		LOG_PLUGIN(DBG_LOW, "Unsupported sentence : [%s]\n", sentence);
-	}
+
 
 	return ret;
 }

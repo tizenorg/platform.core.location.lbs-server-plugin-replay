@@ -68,47 +68,47 @@ static gboolean update_fake_position(gpointer data)
 
 	if (xps_plugin) {
 		if (xps_plugin->location) {
-			if (xps_plugin->location->latitude < 90) {
+			if (xps_plugin->location->latitude < 90)
 				xps_plugin->location->latitude++;
-			} else {
+			else
 				xps_plugin->location->latitude = 0;
-			}
-			if (xps_plugin->location->longitude < 180) {
+
+			if (xps_plugin->location->longitude < 180)
 				xps_plugin->location->longitude++;
-			} else {
+			else
 				xps_plugin->location->longitude = 0;
-			}
-			if (xps_plugin->location->age < 10000) {
+
+			if (xps_plugin->location->age < 10000)
 				xps_plugin->location->age++;
-			} else {
+			else
 				xps_plugin->location->age = 0;
-			}
-			if (xps_plugin->location->altitude < 5000) {
+
+			if (xps_plugin->location->altitude < 5000)
 				xps_plugin->location->altitude++;
-			} else {
+			else
 				xps_plugin->location->altitude = 0;
-			}
-			if (xps_plugin->location->bearing < 90) {
+
+			if (xps_plugin->location->bearing < 90)
 				xps_plugin->location->bearing++;
-			} else {
+			else
 				xps_plugin->location->bearing = 0;
-			}
-			if (xps_plugin->location->hpe < 100) {
+
+			if (xps_plugin->location->hpe < 100)
 				xps_plugin->location->hpe++;
-			} else {
+			else
 				xps_plugin->location->hpe = 0;
-			}
-			if (xps_plugin->location->speed < 250) {
+
+			if (xps_plugin->location->speed < 250)
 				xps_plugin->location->speed++;
-			} else {
+			else
 				xps_plugin->location->speed = 0;
-			}
+
 		}
 
 		/* called intervals */
-		if (xps_plugin->location_cb) {
+		if (xps_plugin->location_cb)
 			xps_plugin->location_cb(xps_plugin->arg, xps_plugin->location, NULL);
-		}
+
 	}
 
 	return TRUE;
@@ -205,9 +205,9 @@ int geoclue_plugin_test_cancel(void *handle, CancelCallback cb, void *arg)
 	}
 
 	/* call CancelCallback */
-	if (cb) {
+	if (cb)
 		cb(arg);
-	}
+
 	return TRUE;
 }
 

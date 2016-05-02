@@ -39,11 +39,11 @@ extern "C" {
 #define DBG_ERR		LOG_ERROR
 
 #ifdef GPS_DLOG_DEBUG		/* Debug mode */
-#define LOG_PLUGIN(dbg_lvl,fmt,args...)		SLOG(dbg_lvl, TAG_GPS_PLUGIN, fmt, ##args)
-#define SECLOG_PLUGIN(dbg_lvl,fmt,args...)	SECURE_SLOG(dbg_lvl, TAG_GPS_PLUGIN, "[%-40s: %-4d] "fmt, __FILE__, __LINE__, ##args)
+#define LOG_PLUGIN(dbg_lvl, fmt, args...)		SLOG(dbg_lvl, TAG_GPS_PLUGIN, fmt, ##args)
+#define SECLOG_PLUGIN(dbg_lvl, fmt, args...)	SECURE_SLOG(dbg_lvl, TAG_GPS_PLUGIN, "[%-40s: %-4d] "fmt, __FILE__, __LINE__, ##args)
 #else				/* Release(commercial) mode */
-#define LOG_PLUGIN(dbg_lvl,fmt,args...)		SLOG(dbg_lvl, TAG_GPS_PLUGIN, fmt, ##args)
-#define SECLOG_PLUGIN(dbg_lvl,fmt,args...)	SECURE_SLOG(dbg_lvl, TAG_GPS_PLUGIN, fmt, ##args)
+#define LOG_PLUGIN(dbg_lvl, fmt, args...)		SLOG(dbg_lvl, TAG_GPS_PLUGIN, fmt, ##args)
+#define SECLOG_PLUGIN(dbg_lvl, fmt, args...)	SECURE_SLOG(dbg_lvl, TAG_GPS_PLUGIN, fmt, ##args)
 #endif
 #endif
 
