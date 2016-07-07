@@ -31,9 +31,9 @@ extern "C" {
 
 #ifdef GPS_DLOG
 #include <dlog.h>
-#define TAG_GPS_PLUGIN		"gps-plugin"
+#define TAG_GPS_PLUGIN		"LBS_REPLAY"
 
-#define DBG_LOW		LOG_UNKNOWN /* LOG_DEBUG */
+#define DBG_LOW		LOG_DEBUG
 #define DBG_INFO	LOG_INFO
 #define DBG_WARN	LOG_WARN
 #define DBG_ERR		LOG_ERROR

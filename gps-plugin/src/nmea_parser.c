@@ -83,7 +83,7 @@ int nmea_parser_tokenize(char input[], char *token[])
 	token[num_tokens] = s;
 	num_tokens++;
 	state = 0;
-	LOG_PLUGIN(DBG_LOW, "input:%s \n", input);
+	/* LOG_PLUGIN(DBG_LOW, "input:%s \n", input); */
 
 	while ((*s != 0) && (num_tokens < MAX_TOEKNS)) {
 		switch (state) {
@@ -197,7 +197,7 @@ static int nmea_parser_gprmc(char *token[], pos_data_t *pos)
 
 	status = token[2];	/*warn = *token[2]; */
 	if (strcmp(status, "V") == 0) {
-		LOG_PLUGIN(DBG_LOW, "Not fixed");
+		/* LOG_PLUGIN(DBG_LOW, "Not fixed"); */
 		return READ_NOT_FIXED;
 	}
 
@@ -224,7 +224,7 @@ static int nmea_parser_gpgll(char *token[], pos_data_t *pos)
 
 	status = token[6];	/*warn = *token[2]; */
 	if (strcmp(status, "V") == 0) {
-		LOG_PLUGIN(DBG_LOW, "Not fixed");
+		/* LOG_PLUGIN(DBG_LOW, "Not fixed"); */
 		return READ_NOT_FIXED;
 	}
 
@@ -243,7 +243,7 @@ static int nmea_parser_gpgsa(char *token[], pos_data_t *pos)
 
 	fix_type = atoi(token[2]);
 	if (fix_type == 1) {
-		LOG_PLUGIN(DBG_LOW, "Not fixed");
+		/* LOG_PLUGIN(DBG_LOW, "Not fixed"); */
 		return READ_NOT_FIXED;
 	}
 
@@ -352,14 +352,14 @@ int nmea_parser(char *data, pos_data_t *pos, sv_data_t *sv)
 		num_sen++;
 		nmea_sen[num_sen] = (char *)strtok_r(NULL, "$", &last);
 	}
-	LOG_PLUGIN(DBG_LOW, "Number of NMEA sentences:%d \n", num_sen);
+	/* LOG_PLUGIN(DBG_LOW, "Number of NMEA sentences:%d \n", num_sen); */
 
 	while (num_sen > 0) {
 		if (nmea_parser_verify_checksum(nmea_sen[count]) == 0) {
 			nmea_parser_tokenize(nmea_sen[count], token);
 			err = nmea_parser_sentence(token[0], token, pos, sv);
 			if (err == READ_NOT_FIXED) {
-				LOG_PLUGIN(DBG_LOW, "NOT Fixed");
+				/* LOG_PLUGIN(DBG_LOW, "NOT Fixed"); */
 				ret = err;
 			} else if (err == READ_ERROR) {
 				ret = err;

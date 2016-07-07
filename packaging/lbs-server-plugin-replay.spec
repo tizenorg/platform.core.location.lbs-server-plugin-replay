@@ -1,6 +1,6 @@
 Name:       lbs-server-plugin-replay
 Summary:    LBS Server plugin library for replay mode
-Version:    0.2.4
+Version:    0.2.5
 Release:    1
 Group:      Location/Libraries
 License:    Apache-2.0

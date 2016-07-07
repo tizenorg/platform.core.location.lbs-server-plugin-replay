@@ -51,6 +51,7 @@ typedef struct {
 	int lcd_mode;
 
 	int batch_mode;
+	int batch_client_count;
 	int batch_interval;
 	int batch_period;
 	int num_of_batch;
@@ -109,51 +110,47 @@ void gps_plugin_replay_pos_event(pos_data_t *data)
 
 void gps_plugin_replay_batch_event(pos_data_t *data, replay_timeout *timer)
 {
+	char buf[256] = {0, };
 	time_t timestamp;
 	time(&timestamp);
 
 	const char *batch_path = tzplatform_mkpath(TZ_SYS_MEDIA, "lbs-server/location_batch.log");
 	if (timer->batch_fd == NULL) {
-		if (timer->batch_mode == BATCH_MODE_ON) {
 
-			struct stat st = {0};
-			const char *lbs_server_path = tzplatform_mkpath(TZ_SYS_MEDIA, "lbs-server");
-			if (stat(lbs_server_path, &st) == -1) {
-				if (mkdir(lbs_server_path, 0777) == -1) {
-					LOG_PLUGIN(DBG_ERR, "Fail to create lbs-server folder");
-					return ;
-				}
-			}
-
-			timer->batch_fd = fopen(batch_path, "w+");
-			if (timer->batch_fd == NULL) {
-				LOG_PLUGIN(DBG_ERR, "Fail to open file [Not available batch_fd]");
+		struct stat st = {0};
+		const char *lbs_server_path = tzplatform_mkpath(TZ_SYS_MEDIA, "lbs-server");
+		if (stat(lbs_server_path, &st) == -1) {
+			if (mkdir(lbs_server_path, 0777) == -1) {
+				LOG_PLUGIN(DBG_ERR, "Fail to create lbs-server folder");
 				return ;
 			}
+		}
+
+		timer->batch_fd = fopen(batch_path, "w+");
+		if (timer->batch_fd == NULL) {
+			LOG_PLUGIN(DBG_ERR, "Fail to open file [Not available batch_fd]");
+			return ;
 		}
 	}
 
 	if (data != NULL) {
-		if (timer->batch_mode == BATCH_MODE_ON) {
-			int ret = -1;
-			char buf[256] = {0, };
 
-			g_snprintf(buf, 256, "%ld;%.6lf;%.6lf;%.2lf;%.2lf;%.2lf;%.2lf;%.2lf;\n", timestamp, data->latitude, data->longitude, data->altitude, data->speed, data->bearing, data->hor_accuracy, data->ver_accuracy);
-			LOG_PLUGIN(DBG_LOW, "Add location info to batch file [%s]", buf);
-
-			ret = fwrite(buf, 1, strlen(buf), timer->batch_fd);
-			if (ret != strlen(buf))
-				LOG_PLUGIN(DBG_ERR, "Fail to write file[%s]", batch_path);
-
-			(timer->num_of_batch)++ ;
-		}
+		g_snprintf(buf, 256, "%ld;%.6lf;%.6lf;%.2lf;%.2lf;%.2lf;%.2lf;%.2lf;\n",
+						timestamp, data->latitude, data->longitude, data->altitude,
+						data->speed, data->bearing, data->hor_accuracy, data->ver_accuracy);
+		LOG_PLUGIN(DBG_LOW, "Add location info to batch file [%s]", buf);
 	}
 
 	if (timer->lcd_mode == VCONFKEY_PM_STATE_NORMAL) {
-		if ((timestamp - timer->batch_start_time) >= timer->batch_interval)
-			timer->is_flush = TRUE;
+		fwrite(buf, 1, strlen(buf), timer->batch_fd);
 
+		(timer->num_of_batch)++ ;
+		timer->is_flush = TRUE;
 	} else {
+		if ((timestamp - timer->batch_start_time) % timer->batch_interval == 0) {
+			fwrite(buf, 1, strlen(buf), timer->batch_fd);
+			(timer->num_of_batch)++ ;
+		}
 		if ((timestamp - timer->batch_start_time) >= timer->batch_period)
 			timer->is_flush = TRUE;
 	}
@@ -306,11 +303,11 @@ gboolean gps_plugin_replay_read_nmea(replay_timeout *timer, char *nmea_data)
 			ref++;
 			if (ref > 1) {
 				fseek(timer->fd, -strlen(buf), SEEK_CUR);
-				LOG_PLUGIN(DBG_LOW, "2nd GPGGA : stop to read nmea data");
+				/* LOG_PLUGIN(DBG_LOW, "2nd GPGGA : stop to read nmea data"); */
 				ret = TRUE;
 				break;
 			} else if (ref == 1) {
-				LOG_PLUGIN(DBG_LOW, "1st GPGGA : start to read nmea data");
+				/* LOG_PLUGIN(DBG_LOW, "1st GPGGA : start to read nmea data"); */
 				strncpy(nmea_data, buf, strlen(buf));
 			}
 		} else {
@@ -331,7 +328,7 @@ gboolean gps_plugin_replay_read_nmea(replay_timeout *timer, char *nmea_data)
 		rewind(timer->fd);
 		ret = TRUE;
 	} else {
-		LOG_PLUGIN(DBG_LOW, "read nmea data [%s]", nmea_data);
+		/* LOG_PLUGIN(DBG_LOW, "read nmea data [%s]", nmea_data); */
 	}
 	return ret;
 }
@@ -402,62 +399,15 @@ gboolean gps_plugin_replay_timeout_cb(gpointer data)
 	}
 
 	if (g_gps_event_cb != NULL) {
-		if (err != READ_NOT_FIXED)
+		if (err != READ_NOT_FIXED) {
+			if (timer->batch_mode == BATCH_MODE_ON) {
+				gps_plugin_replay_batch_event(timer->pos_data, timer);
+			}
+
 			gps_plugin_replay_pos_event(timer->pos_data);
+		}
 
 		gps_plugin_replay_sv_event(timer->sv_data);
-	}
-	ret = TRUE;
-	return ret;
-}
-
-gboolean gps_plugin_batch_replay_timeout_cb(gpointer data)
-{
-	gboolean ret = FALSE;
-	read_error_t err = READ_SUCCESS;
-	char nmea_data[REPLAY_NMEA_SET_SIZE] = { 0, };
-	replay_timeout *timer = (replay_timeout *) data;
-
-	if (timer == NULL) {
-		LOG_PLUGIN(DBG_ERR, "replay handel[timer] is NULL");
-		return FALSE;
-	}
-
-	memset(timer->pos_data, 0, sizeof(pos_data_t));
-	memset(timer->batch_data, 0, sizeof(batch_data_t));
-	memset(timer->sv_data, 0, sizeof(sv_data_t));
-
-	if (timer->replay_mode == REPLAY_NMEA) {
-		if (gps_plugin_replay_read_nmea(timer, nmea_data) == FALSE) {
-			LOG_PLUGIN(DBG_ERR, "Fail to read nmea data from file");
-			return FALSE;
-		} else {
-			err = nmea_parser(nmea_data, timer->pos_data, timer->sv_data);
-			if (err == READ_ERROR) {
-				LOG_PLUGIN(DBG_ERR, "Fail to parser nmea data from file");
-			} else if (err == READ_NOT_FIXED) {
-				LOG_PLUGIN(DBG_LOW, "GPS position is not fixed");
-				timer->sv_data->pos_valid = FALSE;
-			}
-		}
-	} else if (timer->replay_mode == REPLAY_MANUAL) {
-		if (gps_plugin_replay_read_manual(timer->pos_data) == FALSE) {
-			LOG_PLUGIN(DBG_ERR, "Fail to read manual data");
-			err = READ_ERROR;
-			return FALSE;
-		} else {
-			timer->sv_data->pos_valid = TRUE;
-			err = READ_SUCCESS;
-		}
-	} else if (timer->replay_mode == REPLAY_OFF) {
-		LOG_PLUGIN(DBG_WARN, "replay_mode is OFF");
-		err = READ_NOT_FIXED;
-		timer->sv_data->pos_valid = FALSE;
-	}
-
-	if (g_gps_event_cb != NULL) {
-		if (timer->batch_mode == BATCH_MODE_ON)
-			gps_plugin_replay_batch_event(timer->pos_data, timer);
 	}
 	ret = TRUE;
 	return ret;
@@ -518,6 +468,7 @@ gboolean gps_plugin_get_nmea_fd(replay_timeout *timer)
 
 gboolean gps_plugin_start_replay_mode(replay_timeout *timer)
 {
+	LOG_PLUGIN(DBG_LOW, "gps_plugin_start replay mode");
 	gboolean ret = FALSE;
 
 	if (timer->replay_mode == REPLAY_NMEA) {
@@ -557,60 +508,48 @@ gboolean gps_plugin_start_replay_mode(replay_timeout *timer)
 	return ret;
 }
 
-gboolean gps_plugin_start_batch_mode(replay_timeout *timer, int batch_interval, int batch_period)
+gboolean gps_plugin_update_batch_mode(replay_timeout *timer, int batch_interval, int batch_period)
 {
 	gboolean ret = FALSE;
 	time_t timestamp;
 	time(&timestamp);
 
-	if (timer->replay_mode == REPLAY_NMEA) {
-		if (gps_plugin_get_nmea_fd(timer) == FALSE)
-			return FALSE;
+	if (timer->batch_mode == BATCH_MODE_OFF) {
+		timer->batch_mode = BATCH_MODE_ON;
+		timer->batch_client_count = 0;
 	}
+	timer->batch_client_count++;
 
-	if (timer->default_context == NULL) {
-		timer->default_context = g_main_context_default();
-
-		if (timer->default_context == NULL)
-			return ret;
-	}
-
-	if (timer->timeout_src != NULL) {
-		LOG_PLUGIN(DBG_ERR, "timeout_src is already existed");
-		ret = FALSE;
-	} else {
-		timer->timeout_src = g_timeout_source_new_seconds(batch_interval);
-		if (timer->timeout_src != NULL) {
-			g_source_set_callback(timer->timeout_src, &gps_plugin_batch_replay_timeout_cb, timer, NULL);
-			if (g_source_attach(timer->timeout_src, timer->default_context) > 0) {
-				LOG_PLUGIN(DBG_LOW, "timeout_src(0x%x) is created & attatched to 0x%x", timer->timeout_src, timer->default_context);
-				ret = TRUE;
-			} else {
-				gps_plugin_stop_replay_mode(timer);
-				ret = FALSE;
-			}
-		}
-	}
-
-	gps_plugin_respond_start_session(ret);
-
-	timer->batch_mode = BATCH_MODE_ON;
 	timer->batch_interval = batch_interval;
 	timer->batch_period = batch_period;
 	timer->batch_start_time = timestamp;
 
+	LOG_PLUGIN(DBG_LOW, "batch_client_count = %d", timer->batch_client_count);
 	return ret;
 }
 
-void gps_plugin_stop_batch_mode(replay_timeout *timer)
+void gps_plugin_stop_batch_mode(replay_timeout *timer, int batch_interval, int batch_period)
 {
-	if (timer->batch_mode == BATCH_MODE_ON)
-		timer->batch_mode = BATCH_MODE_OFF;
+	if (timer->batch_client_count > 0)
+		timer->batch_client_count--;
 
-	if (timer->batch_fd != NULL) {
-		fclose(timer->batch_fd);
-		timer->batch_fd = NULL;
-		timer->num_of_batch = 0;
+	LOG_PLUGIN(DBG_ERR, "batch_client_count = %d", timer->batch_client_count);
+	if (timer->batch_client_count <= 0) {
+		timer->batch_mode = BATCH_MODE_OFF;
+		timer->batch_interval = 0;
+		timer->batch_period = 0;
+
+		if (timer->batch_fd != NULL) {
+			fclose(timer->batch_fd);
+			timer->batch_fd = NULL;
+			timer->num_of_batch = 0;
+		}
+	} else {
+		timer->batch_interval = batch_interval;
+		timer->batch_period = batch_period;
+		time_t timestamp;
+		time(&timestamp);
+		timer->batch_start_time = timestamp;
 	}
 }
 
@@ -660,7 +599,10 @@ replay_timeout *gps_plugin_replay_timer_init()
 
 	timer->batch_fd = NULL;
 	timer->num_of_batch = 0;
+	timer->batch_client_count = 0;
 	timer->batch_mode = BATCH_MODE_OFF;
+	timer->batch_interval = 0;
+	timer->batch_period = 0;
 	timer->is_flush = FALSE;
 
 	if (setting_get_int(VCONFKEY_LOCATION_REPLAY_MODE, &timer->replay_mode) == FALSE)
@@ -769,11 +711,16 @@ int gps_plugin_replay_gps_request(gps_action_t gps_action, void *gps_action_data
 		gps_plugin_stop_replay_mode(g_replay_timer);
 		break;
 	case GPS_ACTION_START_BATCH:
-		gps_plugin_start_batch_mode(g_replay_timer, gps_start_data->interval, gps_start_data->period);
+		if (!gps_start_data->session_status)	/* need to start */
+			gps_plugin_start_replay_mode(g_replay_timer);
+
+		gps_plugin_update_batch_mode(g_replay_timer, gps_start_data->interval, gps_start_data->period);
 		break;
 	case GPS_ACTION_STOP_BATCH:
-		gps_plugin_stop_batch_mode(g_replay_timer);
-		gps_plugin_stop_replay_mode(g_replay_timer);
+		if (!gps_start_data->session_status)	/* need to stop */
+			gps_plugin_stop_replay_mode(g_replay_timer);
+
+		gps_plugin_stop_batch_mode(g_replay_timer, gps_start_data->interval, gps_start_data->period);
 		break;
 	case GPS_INDI_SUPL_VERIFICATION:
 	case GPS_INDI_SUPL_DNSQUERY:
